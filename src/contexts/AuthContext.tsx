@@ -1,180 +1,177 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from "react";
+import { API_BASE } from "../env";
+import type { User, AuthContextType } from "./types";
+import {
+  useGetHome,
+  useGetUserById,
+  usePostLogin,
+  usePostLogout,
+  usePostRegister,
+  useUser,
+} from "./hooks";
+import { mapRole } from "./utils";
 
-export type UserRole = 'Learner' | 'Administrator';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatar?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  register: (
-    firstname: string,
-    lastname: string,
-    email: string,
-    password: string,
-    role?: UserRole
-  ) => Promise<void>;
-  logout: () => void;
-  updateUserRole: (role: UserRole) => void;
-}
+export type { UserRole, User, UpdateProfilePayload } from "./types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  // =========================
+  // User State
+  // =========================
 
-  useEffect(() => { restoreSession(); }, []);
+  const { user, setUser } = useUser();
 
-  // ---------------------------------------------------------
-  // RESTORE SESSION FROM BACKEND (ONLY IF NO LOCAL USER)
-  // ---------------------------------------------------------
-  const restoreSession = async () => {
+  // =========================
+  // Post Login
+  // =========================
+
+  const postLogin = usePostLogin();
+
+  // =========================
+  // Post Register
+  // =========================
+
+  const postRegister = usePostRegister();
+
+  // =========================
+  // Post Register
+  // =========================
+
+  const postLogout = usePostLogout();
+
+  // =========================
+  // Get Home
+  // =========================
+
+  const home = useGetHome();
+
+  // =========================
+  // Get User By Id
+  // =========================
+
+  const getUserById = useGetUserById();
+
+  // =========================
+  // Restore Session
+  // =========================
+
+  useEffect(() => {
+    void restoreSession();
+  }, []);
+
+  const restoreSession = async (): Promise<User | null> => {
     try {
-      const res = await fetch("http://localhost:8080/api/home", {
-        method: "GET",
-        credentials: "include",
-      });
+      const homeInfo = await home.get();
 
-      const api = await res.json();
-      const info = api.data;
-
-      if (info.role !== "guest") {
-        const restoredUser = {
-          id: String(info.id),
-          name: info.fullName || `${info.firstname} ${info.lastname}`,
-          email: info.email,
-          role: info.role,
-        };
-
-        setUser(restoredUser);
-        localStorage.setItem("user", JSON.stringify(restoredUser));
-      } else {
+      if (!homeInfo) {
         setUser(null);
         localStorage.removeItem("user");
+        return null;
       }
+
+      const role = mapRole(homeInfo.role);
+      if (!role || !homeInfo.id) {
+        setUser(null);
+        localStorage.removeItem("user");
+        return null;
+      }
+
+      const userId = homeInfo.id;
+
+      const info = await getUserById.get({ userId });
+
+      if (!info) {
+        setUser(null);
+        localStorage.removeItem("user");
+        return null;
+      }
+
+      const restoredUser: User = {
+        id: String(info?.userId ?? userId),
+        firstname: String(info?.firstname ?? ""),
+        lastname: String(info?.lastname ?? ""),
+        name:
+          `${info?.firstname ?? ""} ${info?.lastname ?? ""}`.trim() || "User",
+        email: String(info?.email ?? ""),
+        role,
+        gender:
+          info?.gender === "male" || info?.gender === "female"
+            ? info.gender
+            : undefined,
+        phoneNumber: info?.phoneNumber ?? undefined,
+        dateOfBirth: info?.dateOfBirth ?? undefined,
+        avatarUrl: info?.avatarUrl ?? undefined,
+      };
+
+      setUser(restoredUser);
+      localStorage.setItem("user", JSON.stringify(restoredUser));
+
+      return restoredUser;
     } catch (err) {
       console.log("Session restore failed:", err);
       setUser(null);
       localStorage.removeItem("user");
+      return null;
     }
   };
 
-  // ---------------------------------------------------------
-  // LOGIN
-  // ---------------------------------------------------------
-  const login = async (email: string, password: string) => {
+  // =========================
+  // Login
+  // =========================
+
+  const login = async (email: string, password: string): Promise<User> => {
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
+      const user = await postLogin.post({ email, password });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Login failed");
-      }
+      if (!user) throw new Error("Login failed");
 
-      const api = await res.json();
-      const data = api.data;
+      setUser(user);
 
-      const loggedInUser = {
-        id: String(data.id || Date.now()),
-        name: `${data.firstname || ""} ${data.lastname || ""}`.trim(),
-        email: data.email,
-        role: data.role,
-      };
+      await restoreSession();
 
-      setUser(loggedInUser);
-      localStorage.setItem("user", JSON.stringify(loggedInUser)); // ⭐ SAVE ON LOGIN
-      restoreSession();
-      return loggedInUser;
-    } catch (err) {
-      console.error(err);
-      throw err;
+      return user;
+    } catch (error) {
+      throw error;
     }
   };
 
-  // ---------------------------------------------------------
-  // REGISTER
-  // ---------------------------------------------------------
+  // =========================
+  // Register
+  // =========================
+
   const register = async (
     firstname: string,
     lastname: string,
     email: string,
     password: string,
-    role: UserRole = "Learner"
-  ) => {
+  ): Promise<void> => {
     try {
-      const res = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          firstname,
-          lastname,
-          role,
-        }),
+      const registerResult = await postRegister.post({
+        firstname,
+        lastname,
+        email,
+        password,
       });
 
-      const api = await res.json();
-
-      if (!res.ok) {
-        if (api.errors) {
-          throw api.errors;
-        }
-        throw { error: api.message || "Registration failed" };
-      }
-
-      const data = api.data;
-
-      const newUser = {
-        id: String(data.id),
-        name: `${data.firstname} ${data.lastname}`,
-        email: data.email,
-        role: data.role,
-      };
-
-      setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser)); // ⭐ SAVE AFTER REGISTER
-
-    } catch (err) {
-      console.error("REGISTER ERROR:", err);
-      throw err;
+      if (!registerResult) throw new Error("Register failed");
+    } catch (error) {
+      throw error;
     }
   };
 
-  // ---------------------------------------------------------
-  // LOGOUT
-  // ---------------------------------------------------------
-  const logout = async () => {
+  // =========================
+  // Logout
+  // =========================
+
+  const logout = async (): Promise<void> => {
     try {
-      await fetch("http://localhost:8080/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-
-    setUser(null);
-    localStorage.removeItem("user"); // ⭐ REMOVE LOCAL STORAGE
-  };
-
-  const updateUserRole = (role: UserRole) => {
-    if (user) {
-      const updatedUser = { ...user, role };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      await postLogout.post({});
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
     }
   };
 
@@ -186,7 +183,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
-        updateUserRole,
       }}
     >
       {children}
@@ -196,7 +192,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context)
-    throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
