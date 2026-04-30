@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import svgPaths from "../imports/svg-ddf272u81r";
 
 function Group2() {

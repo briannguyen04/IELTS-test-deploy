@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { IELTSMastermindLogo } from "./Logo";
 import { NavItem, Profile } from "./NavBar";
 import { useAuth } from "../contexts/AuthContext";

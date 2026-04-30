@@ -7,7 +7,7 @@ import { AnswerScoringPanel } from "./components/AnswerScoringPanel";
 import { UploadThumbnailCard } from "./components/UploadThumbnailCard";
 import { UploadAudioCard } from "./components/UploadAudioCard";
 import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { useListeningEditorState } from "./hooks/useListeningEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
 import { NavBarUnified } from "../../components/NavBarUnified";

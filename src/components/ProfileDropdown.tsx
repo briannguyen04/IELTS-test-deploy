@@ -1,5 +1,5 @@
 import { User, Settings, LogOut, UserCircle } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { getAvatarMeta } from "./utils";

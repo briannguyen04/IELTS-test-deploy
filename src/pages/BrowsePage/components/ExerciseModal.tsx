@@ -8,7 +8,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { TagChips } from "./TagChips";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { ExerciseMetadata } from "../types";
 import { buildImageUrl } from "../utils/buildImageUrl";
 import { useAuth } from "../../../contexts/AuthContext";

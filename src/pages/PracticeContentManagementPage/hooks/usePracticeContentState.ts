@@ -7,7 +7,7 @@ import {
   normalizeUpdatedOn,
 } from "../utils/normalizers";
 import { PracticeContentMetadata } from "../types";
-import { NavigateFunction } from "react-router";
+import { NavigateFunction } from "react-router-dom";
 
 export function usePracticeContentState(navigate: NavigateFunction) {
   const { fetchMetadata, deletePracticeContent } = usePracticeContentApi();

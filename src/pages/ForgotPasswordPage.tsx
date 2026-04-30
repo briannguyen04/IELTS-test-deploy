@@ -3,7 +3,7 @@ import { NavBarGuest } from "../components/NavBar";
 import { Footer } from "../components/Footer";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 type Step = "email" | "code" | "new-password" | "success";
 

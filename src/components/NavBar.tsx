@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { IELTSMastermindLogo } from "./Logo";
 import { useAuth } from "../contexts/AuthContext";

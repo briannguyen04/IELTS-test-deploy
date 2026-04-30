@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth, UserRole } from "../contexts/AuthContext";
 
 interface ProtectedRouteProps {

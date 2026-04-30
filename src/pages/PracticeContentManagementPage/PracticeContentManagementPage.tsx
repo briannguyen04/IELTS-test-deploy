@@ -2,7 +2,7 @@ import { PracticeContentHeader } from "./components/PracticeContentHeader";
 import { PracticeContentFilter } from "./components/PracticeContentFilter";
 import { PracticeContentTable } from "./components/PracticeContentTable";
 import { Footer } from "../../components/Footer";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { usePracticeContentState } from "./hooks/usePracticeContentState";
 import { SkillSelectionModal } from "../../components/SkillSelectionModal";
 import { NavBarUnified } from "../../components/NavBarUnified";

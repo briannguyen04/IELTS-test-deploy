@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useWritingEditorApi } from "./useWritingEditorApi";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 import {

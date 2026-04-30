@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { NavBarGuest } from "../components/NavBar";
 import { Footer } from "../components/Footer";
 import { LogIn, UserPlus } from "lucide-react";

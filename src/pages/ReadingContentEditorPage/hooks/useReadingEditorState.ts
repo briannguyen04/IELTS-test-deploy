@@ -7,7 +7,7 @@ import {
   ReadingQuestionType,
 } from "../types";
 import { useReadingEditorApi } from "./useReadingEditorApi";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 import {

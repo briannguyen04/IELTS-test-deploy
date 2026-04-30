@@ -11,7 +11,7 @@ import {
   useGetAllPracticeSubmissionsByUserId,
 } from "../hooks";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export function PracticeTestHistory() {
   // const [showDeleteDialog, setShowDeleteDialog] = useState(false);

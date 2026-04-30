@@ -1,6 +1,6 @@
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "./InstructionRenderer.tsx";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { formatTime, countWords } from "../utils";
 

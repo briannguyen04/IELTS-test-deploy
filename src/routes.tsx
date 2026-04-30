@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/HomePage/HomePage";
 import { BrowsePage } from "./pages/BrowsePage/BrowsePage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";

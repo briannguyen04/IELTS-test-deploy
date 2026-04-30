@@ -11,7 +11,7 @@ import {
   TopicTag,
 } from "../types";
 import { useListeningEditorApi } from "./useListeningEditorApi";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 

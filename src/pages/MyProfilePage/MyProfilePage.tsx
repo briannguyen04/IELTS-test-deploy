@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { Footer } from "../../components/Footer";
 import { User, ClipboardList, BarChart3 } from "lucide-react";
 import { MyProfile, PracticeTestHistory, TestPerformance } from "./components";

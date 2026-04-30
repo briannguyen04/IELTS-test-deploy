@@ -9,7 +9,7 @@ import { UploadThumbnailCard } from "./components/UploadThumbnailCard";
 import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
 import { useSupportingImagesState } from "./hooks/useSupportingImagesState";
 import { useAuth } from "../../contexts/AuthContext";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { useWritingEditorState } from "./hooks/useWritingEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
 import { TopicTagPanel } from "../WritingContentEditorPage/components/TopicTagPanel";

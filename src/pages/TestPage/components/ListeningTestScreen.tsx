@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { PauseCircle, PlayCircle, Volume2 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "./InstructionRenderer.tsx";
