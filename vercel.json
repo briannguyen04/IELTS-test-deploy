@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npm --prefix frontend_react run build",
+  "outputDirectory": "frontend_react/build"
+}
