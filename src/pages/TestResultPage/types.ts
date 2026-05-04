@@ -602,20 +602,3 @@ export type UpsertTutorBandScoreResponseDTO = {
 export type UpsertTutorBandScoreResponse = {
   id: string;
 };
-
-// =========================
-// Refresh After Submission
-// =========================
-
-export type RefreshStudyPlanAfterSubmissionParams = {
-  userId: string;
-  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING";
-};
-
-export type RefreshStudyPlanAfterSubmissionResponseDTO = {
-  userId?: string;
-};
-
-export type RefreshStudyPlanAfterSubmissionResponse = {
-  userId: string;
-};

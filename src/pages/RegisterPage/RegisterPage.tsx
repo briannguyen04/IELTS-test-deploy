@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../../components/Footer";
 import { Eye, EyeOff } from "lucide-react";
@@ -53,13 +53,44 @@ export function RegisterPage() {
 
   const navigate = useNavigate();
 
-  const handleRegister = async () => {
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+  const handleRegister = async (e?: FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    setGeneralError("");
+
+    const formData = e?.currentTarget ? new FormData(e.currentTarget) : null;
+
+    const submittedFirstName = formData
+      ? String(formData.get("firstName") || "").trim()
+      : firstName.trim();
+
+    const submittedLastName = formData
+      ? String(formData.get("lastName") || "").trim()
+      : lastName.trim();
+
+    const submittedEmail = formData
+      ? String(formData.get("email") || "").trim()
+      : email.trim();
+
+    const submittedPassword = formData
+      ? String(formData.get("password") || "")
+      : password;
+
+    const submittedConfirmPassword = formData
+      ? String(formData.get("confirmPassword") || "")
+      : confirmPassword;
+
+    if (
+      !submittedFirstName ||
+      !submittedLastName ||
+      !submittedEmail ||
+      !submittedPassword ||
+      !submittedConfirmPassword
+    ) {
       setGeneralError("Please fill in all fields");
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (submittedPassword !== submittedConfirmPassword) {
       setGeneralError("Passwords do not match");
       return;
     }
@@ -67,7 +98,12 @@ export function RegisterPage() {
     try {
       setLoading(true);
 
-      await register(firstName, lastName, email, password);
+      await register(
+        submittedFirstName,
+        submittedLastName,
+        submittedEmail,
+        submittedPassword,
+      );
 
       navigate("/");
     } catch (err: any) {
@@ -116,13 +152,11 @@ export function RegisterPage() {
   };
 
   const handleGoogleRegister = () => {
-    window.location.href =
-      `${API_BASE}/oauth2/authorization/google`;
+    window.location.href = `${API_BASE}/oauth2/authorization/google`;
   };
 
   const handleFacebookRegister = () => {
-    window.location.href =
-      `${API_BASE}/oauth2/authorization/facebook`;
+    window.location.href = `${API_BASE}/oauth2/authorization/facebook`;
   };
 
   return (
@@ -155,126 +189,151 @@ export function RegisterPage() {
               Register
             </h1>
 
-            {/* First Name & Last Name */}
-            <div className="grid grid-cols-2 gap-[20px] mb-[30px]">
-              <div>
+            <form id="register-form" onSubmit={handleRegister}>
+              {/* First Name & Last Name */}
+              <div className="grid grid-cols-2 gap-[20px] mb-[30px]">
+                <div>
+                  <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
+                    First Name
+                  </label>
+                  <input
+                    id="register-first-name"
+                    name="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Enter your first name"
+                    autoComplete="given-name"
+                    className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
+                    Last Name
+                  </label>
+                  <input
+                    id="register-last-name"
+                    name="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Enter your last name"
+                    autoComplete="family-name"
+                    className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="mb-[30px]">
                 <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                  First Name
+                  Email
                 </label>
                 <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Enter your first name"
+                  id="register-email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  autoComplete="email"
                   className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
                 />
               </div>
 
-              <div>
+              {/* Password */}
+              <div className="mb-[30px]">
                 <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                  Last Name
+                  Password
                 </label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Enter your last name"
-                  className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-                />
+                <div className="relative">
+                  <input
+                    id="register-password"
+                    name="password"
+                    type={togglePassword.showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a password"
+                    autoComplete="new-password"
+                    className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                  />
+                  <button
+                    id="register-password-toggle-button"
+                    type="button"
+                    onClick={() =>
+                      togglePassword.setShowPassword(
+                        !togglePassword.showPassword,
+                      )
+                    }
+                    className="absolute right-[20px] top-1/2 -translate-y-1/2"
+                  >
+                    {togglePassword.showPassword ? (
+                      <EyeOff className="w-[24px] h-[24px] text-gray-600" />
+                    ) : (
+                      <Eye className="w-[24px] h-[24px] text-gray-600" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Email */}
-            <div className="mb-[30px]">
-              <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your.email@example.com"
-                className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-              />
-            </div>
+              {/* Confirm Password */}
+              <div className="mb-[20px]">
+                <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="register-confirm-password"
+                    name="confirmPassword"
+                    type={
+                      togglePassword.showConfirmPassword ? "text" : "password"
+                    }
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm your password"
+                    autoComplete="new-password"
+                    className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                  />
+                  <button
+                    id="register-confirm-password-toggle-button"
+                    type="button"
+                    onClick={() =>
+                      togglePassword.setShowConfirmPassword(
+                        !togglePassword.showConfirmPassword,
+                      )
+                    }
+                    className="absolute right-[20px] top-1/2 -translate-y-1/2"
+                  >
+                    {togglePassword.showConfirmPassword ? (
+                      <EyeOff className="w-[24px] h-[24px] text-gray-600" />
+                    ) : (
+                      <Eye className="w-[24px] h-[24px] text-gray-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
 
-            {/* Password */}
-            <div className="mb-[30px]">
-              <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={togglePassword.showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    togglePassword.setShowPassword(!togglePassword.showPassword)
-                  }
-                  className="absolute right-[20px] top-1/2 -translate-y-1/2"
+              {/* GENERAL ERROR (old logic) */}
+              {generalError && (
+                <p
+                  id="register-error-message"
+                  className="text-red-500 text-center text-[20px] mb-[20px]"
                 >
-                  {togglePassword.showPassword ? (
-                    <EyeOff className="w-[24px] h-[24px] text-gray-600" />
-                  ) : (
-                    <Eye className="w-[24px] h-[24px] text-gray-600" />
-                  )}
-                </button>
-              </div>
-            </div>
+                  {generalError}
+                </p>
+              )}
 
-            {/* Confirm Password */}
-            <div className="mb-[20px]">
-              <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={
-                    togglePassword.showConfirmPassword ? "text" : "password"
-                  }
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    togglePassword.setShowConfirmPassword(
-                      !togglePassword.showConfirmPassword,
-                    )
-                  }
-                  className="absolute right-[20px] top-1/2 -translate-y-1/2"
-                >
-                  {togglePassword.showConfirmPassword ? (
-                    <EyeOff className="w-[24px] h-[24px] text-gray-600" />
-                  ) : (
-                    <Eye className="w-[24px] h-[24px] text-gray-600" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* GENERAL ERROR (old logic) */}
-            {generalError && (
-              <p className="text-red-500 text-center text-[20px] mb-[20px]">
-                {generalError}
-              </p>
-            )}
-
-            {/* Register Button */}
-            <button
-              onClick={handleRegister}
-              disabled={loading}
-              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading ? "Registering..." : "Register"}
-            </button>
+              {/* Register Button */}
+              <button
+                id="register-submit-button"
+                type="submit"
+                disabled={loading}
+                className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? "Registering..." : "Register"}
+              </button>
+            </form>
 
             {/* Divider */}
             <div className="flex items-center gap-[20px] mb-[30px]">
@@ -288,6 +347,8 @@ export function RegisterPage() {
             {/* Social Register */}
             <div className="flex gap-[20px] mb-[30px]">
               <button
+                id="google-register-button"
+                type="button"
                 onClick={handleGoogleRegister}
                 className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
               >
@@ -297,6 +358,8 @@ export function RegisterPage() {
                 </span>
               </button>
               <button
+                id="facebook-register-button"
+                type="button"
                 onClick={handleFacebookRegister}
                 className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
               >
@@ -311,6 +374,8 @@ export function RegisterPage() {
             <p className="font-['Inter'] text-[22px] text-black text-center">
               Already have an account?{" "}
               <button
+                id="login-link-button"
+                type="button"
                 onClick={() => navigate("/login")}
                 className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
               >

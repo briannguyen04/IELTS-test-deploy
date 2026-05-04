@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { WritingContentEditorPage } from "../WritingContentEditorPage";
@@ -7,35 +7,57 @@ import { useWritingEditorState } from "../hooks/useWritingEditorState";
 const {
   mockNavigate,
   mockUseParams,
+
   mockSetStatus,
   mockSetInstructions,
   mockSetTitle,
   mockSetTask,
   mockSetDurationMinutes,
+
   mockSetQuestionTypes,
   mockSetTopicTags,
-  mockHandleSaveExit,
+
+  mockThumbnailInputClick,
+  mockHandleThumbnailChange,
+  mockHandleThumbnailDrop,
+  mockHandleDragOver,
   mockHandleSaveThumbnail,
   mockHandleRemoveThumbnail,
+
+  mockHandleMultiImageChange,
   mockHandleSaveImage,
   mockHandleRemoveImage,
   mockHandleCopyUrl,
+  mockSetHasImageChanges,
+
+  mockHandleSaveExit,
 } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockUseParams: vi.fn(),
+
   mockSetStatus: vi.fn(),
   mockSetInstructions: vi.fn(),
   mockSetTitle: vi.fn(),
   mockSetTask: vi.fn(),
   mockSetDurationMinutes: vi.fn(),
+
   mockSetQuestionTypes: vi.fn(),
   mockSetTopicTags: vi.fn(),
-  mockHandleSaveExit: vi.fn(),
+
+  mockThumbnailInputClick: vi.fn(),
+  mockHandleThumbnailChange: vi.fn(),
+  mockHandleThumbnailDrop: vi.fn(),
+  mockHandleDragOver: vi.fn(),
   mockHandleSaveThumbnail: vi.fn(),
   mockHandleRemoveThumbnail: vi.fn(),
+
+  mockHandleMultiImageChange: vi.fn(),
   mockHandleSaveImage: vi.fn(),
   mockHandleRemoveImage: vi.fn(),
   mockHandleCopyUrl: vi.fn(),
+  mockSetHasImageChanges: vi.fn(),
+
+  mockHandleSaveExit: vi.fn(),
 }));
 
 vi.mock("react-router", () => ({
@@ -78,7 +100,9 @@ vi.mock("../components/EditorHeader", () => ({
       <span>disableCancel: {String(disableCancel)}</span>
 
       <button onClick={() => onStatusChange("PUBLISHED")}>Change Status</button>
-      <button onClick={onCancel}>Cancel</button>
+      <button onClick={onCancel} disabled={disableCancel}>
+        Cancel
+      </button>
       <button onClick={onSaveExit}>Save Exit</button>
     </div>
   ),
@@ -88,6 +112,7 @@ vi.mock("../components/QuestionTypePane", () => ({
   QuestionTypePane: ({ questionTypes, onQuestionTypesChange }: any) => (
     <div data-testid="question-type-pane">
       <span>Question Types: {questionTypes.join(", ")}</span>
+
       <button onClick={() => onQuestionTypesChange(["TASK_1", "TASK_2"])}>
         Change Question Types
       </button>
@@ -99,6 +124,7 @@ vi.mock("../components/TopicTagPanel", () => ({
   TopicTagPanel: ({ topicTags, onTopicTagsChange }: any) => (
     <div data-testid="topic-tag-panel">
       <span>Topic Tags: {topicTags.join(", ")}</span>
+
       <button onClick={() => onTopicTagsChange(["Education", "Technology"])}>
         Change Topic Tags
       </button>
@@ -109,6 +135,7 @@ vi.mock("../components/TopicTagPanel", () => ({
 vi.mock("../components/SupportingImagesBlock", () => ({
   SupportingImagesBlock: ({
     uploadedImages,
+    handleMultiImageChange,
     handleSaveImage,
     handleRemoveImage,
     handleCopyUrl,
@@ -116,6 +143,7 @@ vi.mock("../components/SupportingImagesBlock", () => ({
     <div data-testid="supporting-images-block">
       <span>Images Count: {uploadedImages.length}</span>
 
+      <button onClick={handleMultiImageChange}>Change Images</button>
       <button onClick={handleSaveImage}>Save Image</button>
       <button onClick={() => handleRemoveImage("image-1")}>Remove Image</button>
       <button onClick={() => handleCopyUrl("image-url")}>Copy Url</button>
@@ -124,10 +152,24 @@ vi.mock("../components/SupportingImagesBlock", () => ({
 }));
 
 vi.mock("../components/UploadThumbnailCard", () => ({
-  UploadThumbnailCard: ({ thumbnailPreview, onSave, onRemove }: any) => (
+  UploadThumbnailCard: ({
+    thumbnailPreview,
+    thumbnailSaved,
+    onBrowseClick,
+    onFileChange,
+    onDrop,
+    onDragOver,
+    onSave,
+    onRemove,
+  }: any) => (
     <div data-testid="upload-thumbnail-card">
-      <span>Thumbnail: {thumbnailPreview}</span>
+      <span>Thumbnail: {thumbnailPreview || "none"}</span>
+      <span>Thumbnail Saved: {String(thumbnailSaved)}</span>
 
+      <button onClick={onBrowseClick}>Browse Thumbnail</button>
+      <button onClick={onFileChange}>Change Thumbnail</button>
+      <button onClick={onDrop}>Drop Thumbnail</button>
+      <button onClick={onDragOver}>Drag Thumbnail</button>
       <button onClick={onSave}>Save Thumbnail</button>
       <button onClick={onRemove}>Remove Thumbnail</button>
     </div>
@@ -144,6 +186,7 @@ vi.mock("../components/ExerciseInfoCard", () => ({
     onQuestionTypesChange,
     topicTags,
     onTopicTagsChange,
+    updatedOn,
     durationMinutes,
     onDurationChange,
   }: any) => (
@@ -152,6 +195,7 @@ vi.mock("../components/ExerciseInfoCard", () => ({
       <span>Task: {task}</span>
       <span>Question Types: {questionTypes.join(", ")}</span>
       <span>Topic Tags: {topicTags.join(", ")}</span>
+      <span>Updated On: {updatedOn}</span>
       <span>Duration: {durationMinutes}</span>
 
       <button onClick={() => onTitleChange("Updated Writing Title")}>
@@ -169,6 +213,81 @@ vi.mock("../components/ExerciseInfoCard", () => ({
   ),
 }));
 
+const renderPage = () => render(<WritingContentEditorPage />);
+
+const makeEditorState = (overrides: Record<string, any> = {}) => ({
+  title: "Writing Practice 1",
+  setTitle: mockSetTitle,
+
+  instructions: "Initial writing instructions",
+  setInstructions: mockSetInstructions,
+
+  task: "TASK_1",
+  setTask: mockSetTask,
+
+  durationMinutes: 40,
+  setDurationMinutes: mockSetDurationMinutes,
+
+  status: "DRAFT",
+  setStatus: mockSetStatus,
+
+  questionTypes: ["TASK_1"],
+  setQuestionTypes: mockSetQuestionTypes,
+
+  topicTags: ["Education"],
+  setTopicTags: mockSetTopicTags,
+
+  thumbnailFile: null,
+  setThumbnailFile: vi.fn(),
+
+  thumbnailPreview: "thumbnail-url",
+  setThumbnailPreview: vi.fn(),
+
+  thumbnailInputRef: {
+    current: {
+      click: mockThumbnailInputClick,
+    },
+  },
+
+  handleThumbnailChange: mockHandleThumbnailChange,
+  handleThumbnailDrop: mockHandleThumbnailDrop,
+  handleDragOver: mockHandleDragOver,
+
+  displayUpdatedOn: "2026-01-01",
+
+  updatedOn: "2026-01-01",
+  setUpdatedOn: vi.fn(),
+
+  safeRevokeObjectUrl: vi.fn(),
+
+  handleSaveThumbnail: mockHandleSaveThumbnail,
+  thumbnailSaved: true,
+  handleRemoveThumbnail: mockHandleRemoveThumbnail,
+
+  multiImageInputRef: {
+    current: null,
+  },
+
+  uploadedImages: [
+    {
+      id: "image-1",
+      url: "image-url",
+    },
+  ],
+
+  handleMultiImageChange: mockHandleMultiImageChange,
+  handleSaveImage: mockHandleSaveImage,
+  handleRemoveImage: mockHandleRemoveImage,
+  handleCopyUrl: mockHandleCopyUrl,
+
+  hasImageChanges: false,
+  setHasImageChanges: mockSetHasImageChanges,
+
+  handleSaveExit: mockHandleSaveExit,
+
+  ...overrides,
+});
+
 describe("WritingContentEditorPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -177,208 +296,272 @@ describe("WritingContentEditorPage", () => {
       exerciseId: "writing-123",
     });
 
-    vi.mocked(useWritingEditorState).mockReturnValue({
-      title: "Writing Practice 1",
-      setTitle: mockSetTitle,
-
-      instructions: "Initial writing instructions",
-      setInstructions: mockSetInstructions,
-
-      task: "TASK_1",
-      setTask: mockSetTask,
-
-      durationMinutes: 40,
-      setDurationMinutes: mockSetDurationMinutes,
-
-      status: "DRAFT",
-      setStatus: mockSetStatus,
-
-      questionTypes: ["TASK_1"],
-      setQuestionTypes: mockSetQuestionTypes,
-
-      topicTags: ["Education"],
-      setTopicTags: mockSetTopicTags,
-
-      thumbnailFile: null,
-      setThumbnailFile: vi.fn(),
-      thumbnailPreview: "thumbnail-url",
-      setThumbnailPreview: vi.fn(),
-
-      thumbnailInputRef: { current: null },
-
-      handleThumbnailChange: vi.fn(),
-      handleThumbnailDrop: vi.fn(),
-      handleDragOver: vi.fn(),
-
-      displayUpdatedOn: "2026-01-01",
-      updatedOn: "2026-01-01",
-      setUpdatedOn: vi.fn(),
-
-      safeRevokeObjectUrl: vi.fn(),
-
-      handleSaveThumbnail: mockHandleSaveThumbnail,
-      thumbnailSaved: true,
-      handleRemoveThumbnail: mockHandleRemoveThumbnail,
-
-      multiImageInputRef: { current: null },
-      uploadedImages: [{ id: "image-1", url: "image-url" }],
-
-      handleMultiImageChange: vi.fn(),
-      handleSaveImage: mockHandleSaveImage,
-      handleRemoveImage: mockHandleRemoveImage,
-      handleCopyUrl: mockHandleCopyUrl,
-
-      hasImageChanges: false,
-      setHasImageChanges: vi.fn(),
-
-      handleSaveExit: mockHandleSaveExit,
-    } as any);
+    vi.mocked(useWritingEditorState).mockReturnValue(makeEditorState() as any);
   });
 
-  test("renders editor page in edit mode", () => {
-    render(<WritingContentEditorPage />);
+  describe("rendering", () => {
+    test("renders editor page in edit mode with all main sections", () => {
+      renderPage();
 
-    expect(screen.getByTestId("navbar")).toBeInTheDocument();
-    expect(screen.getByTestId("footer")).toBeInTheDocument();
+      expect(useWritingEditorState).toHaveBeenCalledWith(true, "writing-123");
 
-    expect(screen.getByTestId("editor-header")).toHaveTextContent(
-      "isEditMode: true",
-    );
-    expect(screen.getByTestId("editor-header")).toHaveTextContent(
-      "status: DRAFT",
-    );
+      expect(screen.getByTestId("navbar")).toBeInTheDocument();
+      expect(screen.getByTestId("footer")).toBeInTheDocument();
 
-    expect(
-      screen.getByDisplayValue("Initial writing instructions"),
-    ).toBeInTheDocument();
+      expect(screen.getByTestId("editor-header")).toHaveTextContent(
+        "isEditMode: true",
+      );
+      expect(screen.getByTestId("editor-header")).toHaveTextContent(
+        "status: DRAFT",
+      );
+      expect(screen.getByTestId("editor-header")).toHaveTextContent(
+        "disableCancel: false",
+      );
 
-    expect(screen.getByTestId("question-type-pane")).toHaveTextContent(
-      "Question Types: TASK_1",
-    );
+      expect(
+        screen.getByDisplayValue("Initial writing instructions"),
+      ).toBeInTheDocument();
 
-    expect(screen.getByTestId("topic-tag-panel")).toHaveTextContent(
-      "Topic Tags: Education",
-    );
+      expect(screen.getByTestId("question-type-pane")).toHaveTextContent(
+        "Question Types: TASK_1",
+      );
 
-    expect(screen.getByTestId("supporting-images-block")).toHaveTextContent(
-      "Images Count: 1",
-    );
+      expect(screen.getByTestId("topic-tag-panel")).toHaveTextContent(
+        "Topic Tags: Education",
+      );
 
-    expect(screen.getByTestId("upload-thumbnail-card")).toHaveTextContent(
-      "Thumbnail: thumbnail-url",
-    );
+      expect(screen.getByTestId("supporting-images-block")).toHaveTextContent(
+        "Images Count: 1",
+      );
 
-    expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
-      "Title: Writing Practice 1",
-    );
-  });
+      expect(screen.getByTestId("upload-thumbnail-card")).toHaveTextContent(
+        "Thumbnail: thumbnail-url",
+      );
+      expect(screen.getByTestId("upload-thumbnail-card")).toHaveTextContent(
+        "Thumbnail Saved: true",
+      );
 
-  test("renders editor page in create mode when exerciseId is missing", () => {
-    mockUseParams.mockReturnValue({
-      exerciseId: undefined,
+      expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
+        "Title: Writing Practice 1",
+      );
+      expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
+        "Task: TASK_1",
+      );
+      expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
+        "Question Types: TASK_1",
+      );
+      expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
+        "Topic Tags: Education",
+      );
+      expect(screen.getByTestId("exercise-info-card")).toHaveTextContent(
+        "Duration: 40",
+      );
     });
 
-    render(<WritingContentEditorPage />);
+    test("renders editor page in create mode when exerciseId is missing", () => {
+      mockUseParams.mockReturnValue({
+        exerciseId: undefined,
+      });
 
-    expect(screen.getByTestId("editor-header")).toHaveTextContent(
-      "isEditMode: false",
-    );
+      renderPage();
 
-    expect(useWritingEditorState).toHaveBeenCalledWith(false, undefined);
+      expect(screen.getByTestId("editor-header")).toHaveTextContent(
+        "isEditMode: false",
+      );
+
+      expect(useWritingEditorState).toHaveBeenCalledWith(false, undefined);
+    });
+
+    test("renders empty editor state when there is no media, tags, or images", () => {
+      vi.mocked(useWritingEditorState).mockReturnValue(
+        makeEditorState({
+          questionTypes: [],
+          topicTags: [],
+          thumbnailPreview: "",
+          thumbnailSaved: false,
+          uploadedImages: [],
+          hasImageChanges: true,
+        }) as any,
+      );
+
+      renderPage();
+
+      expect(screen.getByTestId("editor-header")).toHaveTextContent(
+        "disableCancel: true",
+      );
+
+      expect(screen.getByRole("button", { name: /^cancel$/i })).toBeDisabled();
+
+      expect(screen.getByTestId("question-type-pane")).toHaveTextContent(
+        "Question Types:",
+      );
+      expect(screen.getByTestId("topic-tag-panel")).toHaveTextContent(
+        "Topic Tags:",
+      );
+      expect(screen.getByTestId("supporting-images-block")).toHaveTextContent(
+        "Images Count: 0",
+      );
+      expect(screen.getByTestId("upload-thumbnail-card")).toHaveTextContent(
+        "Thumbnail: none",
+      );
+      expect(screen.getByTestId("upload-thumbnail-card")).toHaveTextContent(
+        "Thumbnail Saved: false",
+      );
+    });
   });
 
-  test("updates instructions textarea", async () => {
-    const user = userEvent.setup();
+  describe("text editing", () => {
+    test("updates instructions textarea", async () => {
+      const user = userEvent.setup();
 
-    render(<WritingContentEditorPage />);
+      renderPage();
 
-    await user.clear(screen.getByDisplayValue("Initial writing instructions"));
-    await user.type(
-      screen.getByPlaceholderText(
-        "Type the shared instructions and notes layout here...",
-      ),
-      "Updated writing instructions",
-    );
+      await user.clear(
+        screen.getByDisplayValue("Initial writing instructions"),
+      );
 
-    expect(mockSetInstructions).toHaveBeenCalled();
+      await user.type(
+        screen.getByPlaceholderText(
+          "Type the shared instructions and notes layout here...",
+        ),
+        "Updated writing instructions",
+      );
+
+      expect(mockSetInstructions).toHaveBeenCalled();
+    });
   });
 
-  test("calls header actions", async () => {
-    const user = userEvent.setup();
+  describe("header actions", () => {
+    test("calls status, save exit, and cancel handlers", async () => {
+      const user = userEvent.setup();
 
-    render(<WritingContentEditorPage />);
+      renderPage();
 
-    await user.click(screen.getByRole("button", { name: /change status/i }));
-    expect(mockSetStatus).toHaveBeenCalledWith("PUBLISHED");
+      await user.click(screen.getByRole("button", { name: /change status/i }));
+      expect(mockSetStatus).toHaveBeenCalledWith("PUBLISHED");
 
-    await user.click(screen.getByRole("button", { name: /save exit/i }));
-    expect(mockHandleSaveExit).toHaveBeenCalled();
+      await user.click(screen.getByRole("button", { name: /save exit/i }));
+      expect(mockHandleSaveExit).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /^cancel$/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/content-management");
+      await user.click(screen.getByRole("button", { name: /^cancel$/i }));
+      expect(mockNavigate).toHaveBeenCalledWith("/content-management");
+    });
   });
 
-  test("calls question type and topic tag panel actions", async () => {
-    const user = userEvent.setup();
+  describe("question type and topic tag actions", () => {
+    test("updates question types and topic tags from left-side panels", async () => {
+      const user = userEvent.setup();
 
-    render(<WritingContentEditorPage />);
+      renderPage();
 
-    await user.click(
-      screen.getByRole("button", { name: /change question types/i }),
-    );
+      const questionTypePane = within(screen.getByTestId("question-type-pane"));
+      const topicTagPanel = within(screen.getByTestId("topic-tag-panel"));
 
-    expect(mockSetQuestionTypes).toHaveBeenCalledWith(["TASK_1", "TASK_2"]);
+      await user.click(
+        questionTypePane.getByRole("button", {
+          name: /^change question types$/i,
+        }),
+      );
 
-    await user.click(
-      screen.getByRole("button", { name: /change topic tags/i }),
-    );
+      expect(mockSetQuestionTypes).toHaveBeenCalledWith(["TASK_1", "TASK_2"]);
 
-    expect(mockSetTopicTags).toHaveBeenCalledWith(["Education", "Technology"]);
+      await user.click(
+        topicTagPanel.getByRole("button", {
+          name: /^change topic tags$/i,
+        }),
+      );
+
+      expect(mockSetTopicTags).toHaveBeenCalledWith([
+        "Education",
+        "Technology",
+      ]);
+    });
   });
 
-  test("calls upload thumbnail and supporting image actions", async () => {
-    const user = userEvent.setup();
+  describe("media and image actions", () => {
+    test("calls thumbnail handlers", async () => {
+      const user = userEvent.setup();
 
-    render(<WritingContentEditorPage />);
+      renderPage();
 
-    await user.click(screen.getByRole("button", { name: /save thumbnail/i }));
-    expect(mockHandleSaveThumbnail).toHaveBeenCalled();
+      await user.click(
+        screen.getByRole("button", { name: /browse thumbnail/i }),
+      );
+      expect(mockThumbnailInputClick).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /remove thumbnail/i }));
-    expect(mockHandleRemoveThumbnail).toHaveBeenCalled();
+      await user.click(
+        screen.getByRole("button", { name: /change thumbnail/i }),
+      );
+      expect(mockHandleThumbnailChange).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /save image/i }));
-    expect(mockHandleSaveImage).toHaveBeenCalled();
+      await user.click(screen.getByRole("button", { name: /drop thumbnail/i }));
+      expect(mockHandleThumbnailDrop).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /remove image/i }));
-    expect(mockHandleRemoveImage).toHaveBeenCalledWith("image-1");
+      await user.click(screen.getByRole("button", { name: /drag thumbnail/i }));
+      expect(mockHandleDragOver).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /copy url/i }));
-    expect(mockHandleCopyUrl).toHaveBeenCalledWith("image-url");
+      await user.click(screen.getByRole("button", { name: /save thumbnail/i }));
+      expect(mockHandleSaveThumbnail).toHaveBeenCalled();
+
+      await user.click(
+        screen.getByRole("button", { name: /remove thumbnail/i }),
+      );
+      expect(mockHandleRemoveThumbnail).toHaveBeenCalled();
+    });
+
+    test("calls supporting image handlers", async () => {
+      const user = userEvent.setup();
+
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: /change images/i }));
+      expect(mockHandleMultiImageChange).toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: /save image/i }));
+      expect(mockHandleSaveImage).toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: /remove image/i }));
+      expect(mockHandleRemoveImage).toHaveBeenCalledWith("image-1");
+
+      await user.click(screen.getByRole("button", { name: /copy url/i }));
+      expect(mockHandleCopyUrl).toHaveBeenCalledWith("image-url");
+    });
   });
 
-  test("calls exercise info card handlers", async () => {
-    const user = userEvent.setup();
+  describe("exercise info actions", () => {
+    test("updates exercise info fields", async () => {
+      const user = userEvent.setup();
 
-    render(<WritingContentEditorPage />);
+      renderPage();
 
-    await user.click(screen.getByRole("button", { name: /change title/i }));
-    expect(mockSetTitle).toHaveBeenCalledWith("Updated Writing Title");
+      const infoCard = within(screen.getByTestId("exercise-info-card"));
 
-    await user.click(screen.getByRole("button", { name: /change task/i }));
-    expect(mockSetTask).toHaveBeenCalledWith("TASK_2");
+      await user.click(
+        infoCard.getByRole("button", { name: /^change title$/i }),
+      );
+      expect(mockSetTitle).toHaveBeenCalledWith("Updated Writing Title");
 
-    await user.click(
-      screen.getByRole("button", { name: /change info question types/i }),
-    );
-    expect(mockSetQuestionTypes).toHaveBeenCalledWith(["TASK_2"]);
+      await user.click(
+        infoCard.getByRole("button", { name: /^change task$/i }),
+      );
+      expect(mockSetTask).toHaveBeenCalledWith("TASK_2");
 
-    await user.click(
-      screen.getByRole("button", { name: /change info topic tags/i }),
-    );
-    expect(mockSetTopicTags).toHaveBeenCalledWith(["Environment"]);
+      await user.click(
+        infoCard.getByRole("button", {
+          name: /^change info question types$/i,
+        }),
+      );
+      expect(mockSetQuestionTypes).toHaveBeenCalledWith(["TASK_2"]);
 
-    await user.click(screen.getByRole("button", { name: /change duration/i }));
-    expect(mockSetDurationMinutes).toHaveBeenCalledWith(60);
+      await user.click(
+        infoCard.getByRole("button", { name: /^change info topic tags$/i }),
+      );
+      expect(mockSetTopicTags).toHaveBeenCalledWith(["Environment"]);
+
+      await user.click(
+        infoCard.getByRole("button", { name: /^change duration$/i }),
+      );
+      expect(mockSetDurationMinutes).toHaveBeenCalledWith(60);
+    });
   });
 });

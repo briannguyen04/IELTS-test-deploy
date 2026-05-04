@@ -58,12 +58,6 @@ export function TutorStatusButtons({
   }, [currentTutorStatus, onTutorStatusChange]);
 
   // =========================
-  // Refresh study plan after submission
-  // =========================
-
-  const refreshStudyPlanAfterSubmission = useRefreshStudyPlanAfterSubmission();
-
-  // =========================
   // Put set tutor status
   // =========================
 
@@ -94,13 +88,6 @@ export function TutorStatusButtons({
         tutorStatus: nextStatus,
       },
     );
-
-    if (nextStatus === "COMPLETED" && learnerId && skill === "WRITING") {
-      await refreshStudyPlanAfterSubmission.put({
-        userId: learnerId,
-        skill: skill,
-      });
-    }
 
     await getTutorUserPracticeSubmissionByTutorIdAndSubmissionIdParams.get({
       tutorId,

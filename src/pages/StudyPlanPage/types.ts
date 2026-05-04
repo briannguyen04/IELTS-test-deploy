@@ -180,8 +180,6 @@ export type ActiveStudyPlanStrengthBlockDTO = {
   focusType?: BackendFocusType;
   questionType?: BackendQuestionType;
   topicTag?: BackendTopicTag;
-  status?: BackendStrengthStatus;
-  analyticsConclusionLabel?: string;
   description?: string;
   explanation?: string;
   evidence?: string;
@@ -192,8 +190,6 @@ export type ActiveStudyPlanWeaknessBlockDTO = {
   focusType?: BackendFocusType;
   questionType?: BackendQuestionType;
   topicTag?: BackendTopicTag;
-  status?: BackendWeaknessStatus;
-  analyticsConclusionLabel?: string;
   description?: string;
   explanation?: string;
   evidence?: string;
@@ -225,8 +221,6 @@ export type ActiveStudyPlanStrengthBlock = {
   focusType: BackendFocusType;
   questionType: BackendQuestionType;
   topicTag: BackendTopicTag;
-  status: BackendStrengthStatus;
-  analyticsConclusionLabel: string;
   description: string;
   explanation: string;
   evidence: string;
@@ -237,8 +231,6 @@ export type ActiveStudyPlanWeaknessBlock = {
   focusType: BackendFocusType;
   questionType: BackendQuestionType;
   topicTag: BackendTopicTag;
-  status: BackendWeaknessStatus;
-  analyticsConclusionLabel: string;
   description: string;
   explanation: string;
   evidence: string;
@@ -269,8 +261,6 @@ export const ACTIVE_STUDY_PLAN_DTO_INCLUDE_FIELDS = [
   "strengthblocks.focustype",
   "strengthblocks.questiontype",
   "strengthblocks.topictag",
-  "strengthblocks.status",
-  "strengthblocks.analyticsconclusionlabel",
   "strengthblocks.description",
   "strengthblocks.explanation",
   "strengthblocks.evidence",
@@ -278,8 +268,6 @@ export const ACTIVE_STUDY_PLAN_DTO_INCLUDE_FIELDS = [
   "weaknessblocks.focustype",
   "weaknessblocks.questiontype",
   "weaknessblocks.topictag",
-  "weaknessblocks.status",
-  "weaknessblocks.analyticsconclusionlabel",
   "weaknessblocks.description",
   "weaknessblocks.explanation",
   "weaknessblocks.evidence",
@@ -361,4 +349,43 @@ export type FinalizeLearnerStudyPlanByIdResponseDTO = {
 
 export type FinalizeLearnerStudyPlanByIdResponse = {
   id: string;
+};
+
+// =========================
+// Update Refresh Study Plan
+// =========================
+
+export type UpdateRefreshStudyPlanParams = {
+  userId: string;
+  skill: string;
+};
+
+export type UpdateRefreshStudyPlanResponseDTO = {
+  id?: string;
+};
+
+export type UpdateRefreshStudyPlanResponse = {
+  id: string;
+};
+
+// =======================================
+// Get Analytics Submission Counts By User
+// =======================================
+
+export type AnalyticsSubmissionCountsParams = {
+  userId: string;
+};
+
+export type AnalyticsSubmissionCountsDTO = {
+  listeningCount: number;
+  readingCount: number;
+  writingCount: number;
+  speakingCount: number;
+};
+
+export type AnalyticsSubmissionCounts = {
+  listeningCount: number;
+  readingCount: number;
+  writingCount: number;
+  speakingCount: number;
 };

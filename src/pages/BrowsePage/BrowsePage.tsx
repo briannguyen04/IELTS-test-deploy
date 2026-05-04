@@ -186,6 +186,7 @@ export function BrowsePage() {
         <div className="flex gap-[10px] mb-[20px]">
           <div className="flex-1 relative">
             <input
+              id="browse-search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => {
@@ -198,6 +199,8 @@ export function BrowsePage() {
             <Search className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-black" />
             {searchQuery && (
               <button
+                id="browse-search-clear-button"
+                type="button"
                 onClick={() => {
                   setSearchQuery("");
                   handleFilterChange();
@@ -208,7 +211,11 @@ export function BrowsePage() {
               </button>
             )}
           </div>
-          <button className="h-[38px] px-[20px] bg-white border-2 border-[#fcbf65] rounded-[12px] text-[#fcbf65] hover:bg-[#fcbf65] hover:text-white transition-colors">
+          <button
+            id="browse-search-button"
+            type="button"
+            className="h-[38px] px-[20px] bg-white border-2 border-[#fcbf65] rounded-[12px] text-[#fcbf65] hover:bg-[#fcbf65] hover:text-white transition-colors"
+          >
             Search
           </button>
         </div>
@@ -218,6 +225,8 @@ export function BrowsePage() {
           <div className="flex items-center gap-[10px] flex-wrap">
             <span className="font-['Inter'] font-bold text-[13px]">Task</span>
             <button
+              id="browse-task-button-0"
+              type="button"
               onClick={() => {
                 setSelectedTask("all");
                 handleFilterChange();
@@ -228,9 +237,11 @@ export function BrowsePage() {
             >
               All
             </button>
-            {availableTasks.map((task) => (
+            {availableTasks.map((task, index) => (
               <button
                 key={task}
+                id={`browse-task-button-${index + 1}`}
+                type="button"
                 onClick={() => {
                   setSelectedTask(task);
                   handleFilterChange();
@@ -252,6 +263,8 @@ export function BrowsePage() {
               Question type
             </span>
             <button
+              id="browse-question-type-button-0"
+              type="button"
               onClick={() => {
                 setSelectedQuestionType("all");
                 handleFilterChange();
@@ -262,9 +275,11 @@ export function BrowsePage() {
             >
               All
             </button>
-            {availableQuestionTypes.map((type) => (
+            {availableQuestionTypes.map((type, index) => (
               <button
                 key={type}
+                id={`browse-question-type-button-${index + 1}`}
+                type="button"
                 onClick={() => {
                   setSelectedQuestionType(type);
                   handleFilterChange();
@@ -284,6 +299,8 @@ export function BrowsePage() {
           <div className="flex items-center gap-[10px] flex-wrap">
             <span className="font-['Inter'] font-bold text-[13px]">Topic</span>
             <button
+              id="browse-topic-button-0"
+              type="button"
               onClick={() => {
                 setSelectedTopic("all");
                 handleFilterChange();
@@ -294,9 +311,11 @@ export function BrowsePage() {
             >
               All
             </button>
-            {availableTopics.map((topic) => (
+            {availableTopics.map((topic, index) => (
               <button
                 key={topic}
+                id={`browse-topic-button-${index + 1}`}
+                type="button"
                 onClick={() => {
                   setSelectedTopic(topic);
                   handleFilterChange();
@@ -368,6 +387,7 @@ export function BrowsePage() {
 
               <label className="flex items-center gap-[8px] mb-[8px] cursor-pointer">
                 <input
+                  id="browse-sort-radio-1"
                   type="radio"
                   checked={sortBy === "newest"}
                   onChange={() => {
@@ -384,6 +404,7 @@ export function BrowsePage() {
 
               <label className="flex items-center gap-[8px] mb-[8px] cursor-pointer">
                 <input
+                  id="browse-sort-radio-2"
                   type="radio"
                   checked={sortBy === "oldest"}
                   onChange={() => {
@@ -400,6 +421,7 @@ export function BrowsePage() {
 
               <label className="flex items-center gap-[8px] mb-[8px] cursor-pointer">
                 <input
+                  id="browse-sort-radio-3"
                   type="radio"
                   checked={sortBy === "attempts"}
                   onChange={() => {
@@ -416,6 +438,7 @@ export function BrowsePage() {
 
               <label className="flex items-center gap-[8px] mb-[8px] cursor-pointer">
                 <input
+                  id="browse-sort-radio-4"
                   type="radio"
                   checked={sortBy === "a-z"}
                   onChange={() => {
@@ -432,6 +455,7 @@ export function BrowsePage() {
 
               <label className="flex items-center gap-[8px] cursor-pointer">
                 <input
+                  id="browse-sort-radio-5"
                   type="radio"
                   checked={sortBy === "z-a"}
                   onChange={() => {
@@ -450,34 +474,46 @@ export function BrowsePage() {
 
           {/* Exercise Grid */}
           <div className="flex-1">
-            <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
-              {currentExercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  isBookmarked={
-                    userPracticeContentProgresses[exercise.id]?.isBookmarked ??
-                    false
-                  }
-                  onSelect={() => setSelectedExercise(exercise)}
-                />
+            <div
+              id="browse-exercise-grid"
+              className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]"
+            >
+              {currentExercises.map((exercise, index) => (
+                <div key={exercise.id} id={`browse-exercise-card-${index + 1}`}>
+                  <ExerciseCard
+                    exercise={exercise}
+                    isBookmarked={
+                      userPracticeContentProgresses[exercise.id]
+                        ?.isBookmarked ?? false
+                    }
+                    onSelect={() => setSelectedExercise(exercise)}
+                  />
+                </div>
               ))}
             </div>
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-[30px]">
-              <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']">
+              <span
+                id="browse-pagination-summary"
+                className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']"
+              >
                 Showing {sortedExercises.length === 0 ? 0 : startIndex + 1}-
                 {Math.min(endIndex, sortedExercises.length)} of{" "}
                 {sortedExercises.length}
               </span>
 
               <div className="flex items-center gap-[10px]">
-                <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]">
+                <span
+                  id="browse-pagination-page-indicator"
+                  className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]"
+                >
                   Page {paginationPage} of {totalPages}
                 </span>
                 <div className="flex items-center gap-[10px] bg-[#FAFBFD] border border-[#D5D5D5] rounded-[8px] px-[10px] py-[5px]">
                   <button
+                    id="browse-pagination-button-previous"
+                    type="button"
                     onClick={() =>
                       setPaginationPage((prev) => Math.max(1, prev - 1))
                     }
@@ -494,6 +530,8 @@ export function BrowsePage() {
                   <div className="w-[1px] h-[20px] bg-[#979797]" />
 
                   <button
+                    id="browse-pagination-button-next"
+                    type="button"
                     onClick={() =>
                       setPaginationPage((prev) =>
                         Math.min(totalPages, prev + 1),
@@ -519,15 +557,17 @@ export function BrowsePage() {
 
       {/* Exercise Modal */}
       {selectedExercise && (
-        <ExerciseModal
-          exerciseMetadata={selectedExercise}
-          pageType={skill}
-          attempCount={
-            userPracticeContentProgresses[selectedExercise.id]?.attemptCount ??
-            0
-          }
-          onClose={() => setSelectedExercise(null)}
-        />
+        <div id="browse-exercise-modal">
+          <ExerciseModal
+            exerciseMetadata={selectedExercise}
+            pageType={skill}
+            attempCount={
+              userPracticeContentProgresses[selectedExercise.id]
+                ?.attemptCount ?? 0
+            }
+            onClose={() => setSelectedExercise(null)}
+          />
+        </div>
       )}
     </div>
   );

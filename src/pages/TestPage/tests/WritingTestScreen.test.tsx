@@ -17,6 +17,8 @@ const {
   mockOpenExitModal,
   mockConfirmExit,
   mockSetShowExitModal,
+  mockAttemptHookArgs,
+  mockState,
 } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGetWritingExercise: vi.fn(),
@@ -30,9 +32,25 @@ const {
   mockOpenExitModal: vi.fn(),
   mockConfirmExit: vi.fn(),
   mockSetShowExitModal: vi.fn(),
+  mockAttemptHookArgs: vi.fn(),
+
+  mockState: {
+    exercise: {
+      duration: 60,
+      examText: {
+        title: "IELTS Writing Task 2",
+      },
+    },
+    answers: {
+      1: ["This is my essay answer"],
+    },
+    secondsRemaining: 3500,
+    isExpired: false,
+    elapsedMs: 100000,
+    showExitModal: false,
+  },
 }));
 
-// WritingTestScreen imports useNavigate from react-router
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
 }));
@@ -57,6 +75,7 @@ vi.mock("../utils", () => ({
   formatTime: (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
+
     return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
   },
 
@@ -68,25 +87,18 @@ vi.mock("../utils", () => ({
 vi.mock("../hooks", () => ({
   useGetWritingExercise: () => ({
     get: mockGetWritingExercise,
-    exercise: {
-      duration: 60,
-      examText: {
-        title: "IELTS Writing Task 2",
-      },
-    },
+    exercise: mockState.exercise,
   }),
 
   useUserAnswer: () => ({
-    answers: {
-      1: ["This is my essay answer"],
-    },
+    answers: mockState.answers,
     onAnswerChange: mockOnAnswerChange,
   }),
 
   useCountdownTimer: () => ({
-    secondsRemaining: 3500,
-    isExpired: false,
-    getElapsedMs: vi.fn(() => 100000),
+    secondsRemaining: mockState.secondsRemaining,
+    isExpired: mockState.isExpired,
+    getElapsedMs: vi.fn(() => mockState.elapsedMs),
   }),
 
   useTestActivityLogger: () => ({
@@ -106,12 +118,19 @@ vi.mock("../hooks", () => ({
     post: mockPostAIFeedback,
   }),
 
-  usePostUserPracticeContentProgressAttemptIncrement: () => ({
-    post: mockPostAttemptIncrement,
-  }),
+  usePostUserPracticeContentProgressAttemptIncrement: (
+    userId: string,
+    exerciseId: string,
+  ) => {
+    mockAttemptHookArgs(userId, exerciseId);
+
+    return {
+      post: mockPostAttemptIncrement,
+    };
+  },
 
   useExitModal: () => ({
-    showExitModal: false,
+    showExitModal: mockState.showExitModal,
     openExitModal: mockOpenExitModal,
     setShowExitModal: mockSetShowExitModal,
     confirmExit: mockConfirmExit,
@@ -120,9 +139,53 @@ vi.mock("../hooks", () => ({
   useSubmitModal: vi.fn(),
 }));
 
+const renderPage = (exerciseId = "writing-123") =>
+  render(<WritingTestScreen exerciseId={exerciseId} />);
+
+const submitButton = () => screen.getByRole("button", { name: /^submit$/i });
+
+const essayInput = () => screen.getByPlaceholderText("Type your essay here...");
+
+const openSubmitModal = async () => {
+  const user = userEvent.setup();
+
+  renderPage();
+
+  await user.click(submitButton());
+
+  return user;
+};
+
+const confirmSubmit = async () => {
+  const submitButtons = screen.getAllByRole("button", {
+    name: /^submit$/i,
+  });
+
+  await userEvent.setup().click(submitButtons[submitButtons.length - 1]);
+};
+
+const resetMockState = () => {
+  Object.assign(mockState, {
+    exercise: {
+      duration: 60,
+      examText: {
+        title: "IELTS Writing Task 2",
+      },
+    },
+    answers: {
+      1: ["This is my essay answer"],
+    },
+    secondsRemaining: 3500,
+    isExpired: false,
+    elapsedMs: 100000,
+    showExitModal: false,
+  });
+};
+
 describe("WritingTestScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetMockState();
 
     vi.mocked(useAuth).mockReturnValue({
       user: {
@@ -156,143 +219,256 @@ describe("WritingTestScreen", () => {
     ]);
   });
 
-  test("fetches writing exercise and logs test start when mounted", async () => {
-    render(<WritingTestScreen exerciseId="writing-123" />);
+  describe("initial loading", () => {
+    test("fetches writing exercise and logs test start when exerciseId exists", async () => {
+      renderPage();
 
-    await waitFor(() => {
-      expect(mockGetWritingExercise).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockGetWritingExercise).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockLogActivity).toHaveBeenCalledWith({
+          activityType: "TEST_START",
+        });
+      });
+
+      expect(mockAttemptHookArgs).toHaveBeenCalledWith(
+        "user-123",
+        "writing-123",
+      );
     });
 
-    await waitFor(() => {
+    test("does not fetch or log test start when exerciseId is empty", () => {
+      renderPage("");
+
+      expect(mockGetWritingExercise).not.toHaveBeenCalled();
+      expect(mockLogActivity).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("rendering", () => {
+    test("renders timer, writing task, textarea, word count, exit button, and submit button", () => {
+      renderPage();
+
+      expect(screen.getByTestId("logo")).toBeInTheDocument();
+
+      expect(screen.getByText(/time remaining/i)).toBeInTheDocument();
+      expect(screen.getByText("58:20")).toBeInTheDocument();
+
+      expect(screen.getByTestId("instruction-renderer")).toHaveTextContent(
+        "IELTS Writing Task 2",
+      );
+
+      expect(essayInput()).toBeInTheDocument();
+      expect(essayInput()).toHaveValue("This is my essay answer");
+
+      expect(screen.getByText(/words count/i)).toBeInTheDocument();
+      expect(screen.getByText("5")).toBeInTheDocument();
+
+      expect(
+        screen.getByRole("button", { name: /exit test/i }),
+      ).toBeInTheDocument();
+
+      expect(submitButton()).toBeInTheDocument();
+    });
+
+    test("renders empty essay and zero word count when there is no answer", () => {
+      mockState.answers = {};
+
+      renderPage();
+
+      expect(essayInput()).toHaveValue("");
+      expect(screen.getByText("0")).toBeInTheDocument();
+    });
+  });
+
+  describe("answer behavior", () => {
+    test("calls onAnswerChange when user types in textarea", async () => {
+      const user = userEvent.setup();
+
+      renderPage();
+
+      await user.type(essayInput(), " more text");
+
+      expect(mockOnAnswerChange).toHaveBeenCalled();
+      expect(mockOnAnswerChange).toHaveBeenCalledWith(1, expect.any(Array));
+    });
+  });
+
+  describe("submit modal", () => {
+    test("opens submit confirmation modal when Submit is clicked", async () => {
+      await openSubmitModal();
+
+      expect(screen.getByText("Submit Test?")).toBeInTheDocument();
+
+      expect(
+        screen.getByText(/are you sure you want to submit your test/i),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByRole("button", { name: /continue test/i }),
+      ).toBeInTheDocument();
+    });
+
+    test("closes submit confirmation modal when Continue Test is clicked", async () => {
+      const user = await openSubmitModal();
+
+      await user.click(screen.getByRole("button", { name: /continue test/i }));
+
+      expect(screen.queryByText("Submit Test?")).not.toBeInTheDocument();
+    });
+
+    test("opens submit modal automatically when time expires", async () => {
+      mockState.secondsRemaining = 0;
+      mockState.isExpired = true;
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText("Submit Test?")).toBeInTheDocument();
+      });
+
+      expect(screen.getByText(/time is up/i)).toBeInTheDocument();
+
+      expect(
+        screen.queryByRole("button", { name: /continue test/i }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("submit flow", () => {
+    test("submits writing answer, creates AI feedback, increments attempt, and navigates to result page", async () => {
+      await openSubmitModal();
+      await confirmSubmit();
+
+      await waitFor(() => {
+        expect(mockPostUserSubmission).toHaveBeenCalledWith({
+          userId: "user-123",
+          practiceContentId: "writing-123",
+          timeSpentSeconds: 100,
+          learnerTestActivities: [
+            {
+              activityType: "TEST_START",
+            },
+            {
+              activityType: "TEST_SUBMIT",
+            },
+          ],
+        });
+      });
+
       expect(mockLogActivity).toHaveBeenCalledWith({
-        activityType: "TEST_START",
+        activityType: "TEST_SUBMIT",
+      });
+
+      expect(mockPostWritingAnswer).toHaveBeenCalledWith({
+        userPracticeSubmissionId: "submission-123",
+        orderIndex: "1",
+        essayText: "This is my essay answer",
+      });
+
+      expect(mockPostAIFeedback).toHaveBeenCalledWith({
+        submissionId: "submission-123",
+      });
+
+      expect(mockPostAttemptIncrement).toHaveBeenCalled();
+
+      expect(mockNavigate).toHaveBeenCalledWith("/test/result/submission-123");
+    });
+
+    test("submits with empty userId when user is missing", async () => {
+      vi.mocked(useAuth).mockReturnValue({
+        user: null,
+      } as any);
+
+      await openSubmitModal();
+      await confirmSubmit();
+
+      await waitFor(() => {
+        expect(mockPostUserSubmission).toHaveBeenCalledWith(
+          expect.objectContaining({
+            userId: "",
+            practiceContentId: "writing-123",
+          }),
+        );
+      });
+
+      expect(mockAttemptHookArgs).toHaveBeenCalledWith("", "writing-123");
+    });
+
+    test("submits with empty submission id when submission id is missing", async () => {
+      mockPostUserSubmission.mockResolvedValue({});
+
+      await openSubmitModal();
+      await confirmSubmit();
+
+      await waitFor(() => {
+        expect(mockPostWritingAnswer).toHaveBeenCalledWith({
+          userPracticeSubmissionId: "",
+          orderIndex: "1",
+          essayText: "This is my essay answer",
+        });
+      });
+
+      expect(mockPostAIFeedback).toHaveBeenCalledWith({
+        submissionId: "",
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith("/test/result/undefined");
+    });
+
+    test("submits empty essay text when no writing answer exists", async () => {
+      mockState.answers = {};
+
+      await openSubmitModal();
+      await confirmSubmit();
+
+      await waitFor(() => {
+        expect(mockPostWritingAnswer).toHaveBeenCalledWith(
+          expect.objectContaining({
+            essayText: "",
+          }),
+        );
       });
     });
   });
 
-  test("renders timer, writing task, textarea, word count, and submit button", () => {
-    render(<WritingTestScreen exerciseId="writing-123" />);
+  describe("exit modal", () => {
+    test("clicking Exit test opens exit modal", async () => {
+      const user = userEvent.setup();
 
-    expect(screen.getByTestId("logo")).toBeInTheDocument();
+      renderPage();
 
-    expect(screen.getByText(/time remaining/i)).toBeInTheDocument();
-    expect(screen.getByText("58:20")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: /exit test/i }));
 
-    expect(screen.getByTestId("instruction-renderer")).toBeInTheDocument();
-    expect(screen.getByText("IELTS Writing Task 2")).toBeInTheDocument();
-
-    expect(
-      screen.getByPlaceholderText("Type your essay here..."),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(/words count/i)).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", { name: /^submit$/i }),
-    ).toBeInTheDocument();
-  });
-
-  test("calls onAnswerChange when user types in textarea", async () => {
-    const user = userEvent.setup();
-
-    render(<WritingTestScreen exerciseId="writing-123" />);
-
-    await user.type(
-      screen.getByPlaceholderText("Type your essay here..."),
-      " more text",
-    );
-
-    expect(mockOnAnswerChange).toHaveBeenCalled();
-  });
-
-  test("opens submit confirmation modal when Submit is clicked", async () => {
-    const user = userEvent.setup();
-
-    render(<WritingTestScreen exerciseId="writing-123" />);
-
-    await user.click(screen.getByRole("button", { name: /^submit$/i }));
-
-    expect(screen.getByText("Submit Test?")).toBeInTheDocument();
-
-    expect(
-      screen.getByText(/are you sure you want to submit your test/i),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", { name: /continue test/i }),
-    ).toBeInTheDocument();
-  });
-
-  test("closes submit confirmation modal when Continue Test is clicked", async () => {
-    const user = userEvent.setup();
-
-    render(<WritingTestScreen exerciseId="writing-123" />);
-
-    await user.click(screen.getByRole("button", { name: /^submit$/i }));
-
-    expect(screen.getByText("Submit Test?")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /continue test/i }));
-
-    expect(screen.queryByText("Submit Test?")).not.toBeInTheDocument();
-  });
-
-  test("submits writing answer, creates AI feedback, increments attempt, and navigates to result page", async () => {
-    const user = userEvent.setup();
-
-    render(<WritingTestScreen exerciseId="writing-123" />);
-
-    await user.click(screen.getByRole("button", { name: /^submit$/i }));
-
-    const submitButtons = screen.getAllByRole("button", {
-      name: /^submit$/i,
+      expect(mockOpenExitModal).toHaveBeenCalled();
     });
 
-    await user.click(submitButtons[submitButtons.length - 1]);
+    test("renders exit modal and cancels exit", async () => {
+      const user = userEvent.setup();
 
-    await waitFor(() => {
-      expect(mockPostUserSubmission).toHaveBeenCalledWith({
-        userId: "user-123",
-        practiceContentId: "writing-123",
-        timeSpentSeconds: 100,
-        learnerTestActivities: [
-          {
-            activityType: "TEST_START",
-          },
-          {
-            activityType: "TEST_SUBMIT",
-          },
-        ],
-      });
+      mockState.showExitModal = true;
+
+      renderPage();
+
+      expect(screen.getByText("Exit Test?")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+      expect(mockSetShowExitModal).toHaveBeenCalledWith(false);
     });
 
-    expect(mockLogActivity).toHaveBeenCalledWith({
-      activityType: "TEST_SUBMIT",
+    test("confirms exit from exit modal", async () => {
+      const user = userEvent.setup();
+
+      mockState.showExitModal = true;
+
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: /^exit$/i }));
+
+      expect(mockConfirmExit).toHaveBeenCalled();
     });
-
-    expect(mockPostWritingAnswer).toHaveBeenCalledWith({
-      userPracticeSubmissionId: "submission-123",
-      orderIndex: "1",
-      essayText: "This is my essay answer",
-    });
-
-    expect(mockPostAIFeedback).toHaveBeenCalledWith({
-      submissionId: "submission-123",
-    });
-
-    expect(mockPostAttemptIncrement).toHaveBeenCalled();
-
-    expect(mockNavigate).toHaveBeenCalledWith("/test/result/submission-123");
-  });
-
-  test("clicking Exit test opens exit modal", async () => {
-    const user = userEvent.setup();
-
-    render(<WritingTestScreen exerciseId="writing-123" />);
-
-    await user.click(screen.getByRole("button", { name: /exit test/i }));
-
-    expect(mockOpenExitModal).toHaveBeenCalled();
   });
 });

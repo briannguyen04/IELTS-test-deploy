@@ -37,14 +37,11 @@ export function ForgotPasswordPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(
-        `${API_BASE}/api/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        },
-      );
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
 
       if (!res.ok) {
         throw new Error("Failed to send reset code");
@@ -96,17 +93,14 @@ export function ForgotPasswordPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(
-        `${API_BASE}/api/auth/verify-reset-code`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            code: enteredCode,
-          }),
-        },
-      );
+      const res = await fetch(`${API_BASE}/api/auth/verify-reset-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          code: enteredCode,
+        }),
+      });
 
       const data = await res.json();
 

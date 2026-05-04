@@ -451,10 +451,6 @@ export function useReadingEditorState(isEditMode: boolean, id?: string) {
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -473,10 +469,6 @@ export function useReadingEditorState(isEditMode: boolean, id?: string) {
     const validTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a .jpg or .png file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
       return;
     }
 

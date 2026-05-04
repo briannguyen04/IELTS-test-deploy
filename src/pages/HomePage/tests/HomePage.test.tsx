@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { HomePage } from "../HomePage";
 
 const { mockNavigate } = vi.hoisted(() => ({
@@ -20,9 +20,23 @@ vi.mock("../../../components/Footer", () => ({
 }));
 
 vi.mock("../../../components/figma/ImageWithFallback", () => ({
-  ImageWithFallback: ({ alt }: any) => (
-    <div data-testid="image-with-fallback">{alt}</div>
+  ImageWithFallback: ({ src, alt, className }: any) => (
+    <img
+      data-testid="image-with-fallback"
+      src={src}
+      alt={alt}
+      className={className}
+    />
   ),
+}));
+
+vi.mock("lucide-react", () => ({
+  ChevronLeft: () => <span>ChevronLeft</span>,
+  ChevronRight: () => <span>ChevronRight</span>,
+  BookOpen: () => <span>BookOpen</span>,
+  Trophy: () => <span>Trophy</span>,
+  Users: () => <span>Users</span>,
+  Zap: () => <span>Zap</span>,
 }));
 
 vi.mock("figma:asset/5c2f46fbe8110f6b9ff43987b477d1270d3ffeef.png", () => ({
@@ -49,116 +63,251 @@ vi.mock("figma:asset/79f59bf5912d98c84c9d2e2055387a0bd9773a30.png", () => ({
   default: "writing.png",
 }));
 
+const renderPage = () => render(<HomePage />);
+
+const getHeroSlides = (container: HTMLElement) => {
+  const heroSection = container.querySelector("section") as HTMLElement;
+
+  return Array.from(heroSection.children).filter((child) =>
+    (child as HTMLElement).className.includes("transition-opacity"),
+  ) as HTMLElement[];
+};
+
+const expectActiveSlide = (container: HTMLElement, activeIndex: number) => {
+  const slides = getHeroSlides(container);
+
+  expect(slides).toHaveLength(3);
+
+  slides.forEach((slide, index) => {
+    if (index === activeIndex) {
+      expect(slide.className).toContain("opacity-100");
+    } else {
+      expect(slide.className).toContain("opacity-0");
+    }
+  });
+};
+
+const getSlideIndicatorButtons = (container: HTMLElement) => {
+  const heroSection = container.querySelector("section") as HTMLElement;
+
+  const indicatorContainer = Array.from(heroSection.children).find((child) =>
+    (child as HTMLElement).className.includes("bottom-[24px]"),
+  ) as HTMLElement;
+
+  return within(indicatorContainer).getAllByRole("button");
+};
+
 describe("HomePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test("renders homepage sections", () => {
-    render(<HomePage />);
-
-    expect(screen.getByTestId("navbar")).toBeInTheDocument();
-    expect(screen.getAllByTestId("footer").length).toBeGreaterThanOrEqual(1);
-
-    expect(screen.getAllByText("WE TAKE YOUR").length).toBeGreaterThanOrEqual(
-      1,
-    );
-    expect(
-      screen.getAllByText("IELTS SCORE HIGHER").length,
-    ).toBeGreaterThanOrEqual(1);
-
-    expect(screen.getByText("Practice Exercises")).toBeInTheDocument();
-    expect(screen.getByText("Active Students")).toBeInTheDocument();
-    expect(screen.getByText("Skills Covered")).toBeInTheDocument();
-    expect(screen.getByText("Instant Feedback")).toBeInTheDocument();
-
-    expect(screen.getByText("Choose Your Path to Success")).toBeInTheDocument();
-    expect(screen.getByText("Why IELTS Mastermind?")).toBeInTheDocument();
-    expect(
-      screen.getByText("Ready to Start Your IELTS Journey?"),
-    ).toBeInTheDocument();
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
-  test("renders all IELTS skill cards", () => {
-    render(<HomePage />);
+  describe("rendering", () => {
+    test("renders homepage layout and main sections", () => {
+      renderPage();
 
-    expect(screen.getByText("Listening")).toBeInTheDocument();
-    expect(screen.getByText("Reading")).toBeInTheDocument();
-    expect(screen.getByText("Writing")).toBeInTheDocument();
-    expect(screen.getByText("Speaking")).toBeInTheDocument();
-  });
+      expect(screen.getByTestId("navbar")).toBeInTheDocument();
+      expect(screen.getAllByTestId("footer").length).toBeGreaterThanOrEqual(1);
 
-  test("clicking hero start practicing navigates to listening page", async () => {
-    const user = userEvent.setup();
+      expect(screen.getAllByText("WE TAKE YOUR").length).toBeGreaterThanOrEqual(
+        1,
+      );
 
-    render(<HomePage />);
+      expect(
+        screen.getAllByText("IELTS SCORE HIGHER").length,
+      ).toBeGreaterThanOrEqual(1);
 
-    const heroButtons = screen.getAllByRole("button", {
-      name: /^start practicing$/i,
+      expect(screen.getByText("Practice Exercises")).toBeInTheDocument();
+      expect(screen.getByText("Active Students")).toBeInTheDocument();
+      expect(screen.getByText("Skills Covered")).toBeInTheDocument();
+      expect(screen.getByText("Instant Feedback")).toBeInTheDocument();
+
+      expect(
+        screen.getByText("Choose Your Path to Success"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Why IELTS Mastermind?")).toBeInTheDocument();
+
+      expect(
+        screen.getByText("Ready to Start Your IELTS Journey?"),
+      ).toBeInTheDocument();
     });
 
-    await user.click(heroButtons[0]);
+    test("renders all carousel slides, skill cards, feature cards, and CTA content", () => {
+      renderPage();
 
-    expect(mockNavigate).toHaveBeenCalledWith("/listening");
+      expect(screen.getByText("IELTS SCORE HIGHER")).toBeInTheDocument();
+      expect(screen.getByText("IELTS SKILLS")).toBeInTheDocument();
+      expect(screen.getByText("AI-POWERED FEEDBACK")).toBeInTheDocument();
+
+      expect(screen.getByText("Listening")).toBeInTheDocument();
+      expect(screen.getByText("Reading")).toBeInTheDocument();
+      expect(screen.getByText("Writing")).toBeInTheDocument();
+      expect(screen.getByText("Speaking")).toBeInTheDocument();
+
+      expect(screen.getByAltText("Listening")).toHaveAttribute(
+        "src",
+        "listening.png",
+      );
+      expect(screen.getByAltText("Reading")).toHaveAttribute(
+        "src",
+        "reading.png",
+      );
+      expect(screen.getByAltText("Writing")).toHaveAttribute(
+        "src",
+        "writing.png",
+      );
+      expect(screen.getByAltText("Speaking")).toHaveAttribute(
+        "src",
+        "speaking.png",
+      );
+
+      expect(
+        screen.getByText("Real IELTS Format & Timing"),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByText("AI-Powered Instant Feedback"),
+      ).toBeInTheDocument();
+
+      expect(screen.getByAltText("Real IELTS Format")).toHaveAttribute(
+        "src",
+        "feature-real-format.png",
+      );
+
+      expect(screen.getByAltText("AI-Powered Scoring")).toHaveAttribute(
+        "src",
+        "feature-ai-scoring.png",
+      );
+
+      expect(screen.getByText(/Join 100,000\+ students/i)).toBeInTheDocument();
+    });
   });
 
-  test("clicking bottom CTA navigates to listening page", async () => {
-    const user = userEvent.setup();
+  describe("hero carousel", () => {
+    test("shows the first slide as active by default", () => {
+      const { container } = renderPage();
 
-    render(<HomePage />);
+      expectActiveSlide(container, 0);
+    });
 
-    await user.click(
-      screen.getByRole("button", { name: /start practicing now/i }),
-    );
+    test("clicking next and previous buttons changes the active slide", async () => {
+      const user = userEvent.setup();
 
-    expect(mockNavigate).toHaveBeenCalledWith("/listening");
+      const { container } = renderPage();
+
+      expectActiveSlide(container, 0);
+
+      await user.click(
+        screen.getByRole("button", {
+          name: /chevronright/i,
+        }),
+      );
+
+      expectActiveSlide(container, 1);
+
+      await user.click(
+        screen.getByRole("button", {
+          name: /chevronleft/i,
+        }),
+      );
+
+      expectActiveSlide(container, 0);
+    });
+
+    test("previous button wraps from first slide to last slide", async () => {
+      const user = userEvent.setup();
+
+      const { container } = renderPage();
+
+      expectActiveSlide(container, 0);
+
+      await user.click(
+        screen.getByRole("button", {
+          name: /chevronleft/i,
+        }),
+      );
+
+      expectActiveSlide(container, 2);
+    });
+
+    test("clicking slide indicator changes the active slide", async () => {
+      const user = userEvent.setup();
+
+      const { container } = renderPage();
+
+      expectActiveSlide(container, 0);
+
+      const indicatorButtons = getSlideIndicatorButtons(container);
+
+      await user.click(indicatorButtons[2]);
+
+      expectActiveSlide(container, 2);
+    });
+
+    test("auto-play changes the active slide after interval", () => {
+      vi.useFakeTimers();
+
+      const { container } = renderPage();
+
+      expectActiveSlide(container, 0);
+
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      expectActiveSlide(container, 1);
+    });
   });
 
-  test("clicking skill cards navigates to correct skill pages", async () => {
-    const user = userEvent.setup();
+  describe("navigation actions", () => {
+    test("clicking hero Start Practicing navigates to listening page", async () => {
+      const user = userEvent.setup();
 
-    render(<HomePage />);
+      renderPage();
 
-    await user.click(screen.getByText("Listening"));
-    expect(mockNavigate).toHaveBeenCalledWith("/listening");
+      const heroStartButtons = screen.getAllByRole("button", {
+        name: /^start practicing$/i,
+      });
 
-    await user.click(screen.getByText("Reading"));
-    expect(mockNavigate).toHaveBeenCalledWith("/reading");
+      await user.click(heroStartButtons[0]);
 
-    await user.click(screen.getByText("Writing"));
-    expect(mockNavigate).toHaveBeenCalledWith("/writing");
+      expect(mockNavigate).toHaveBeenCalledWith("/listening");
+    });
 
-    await user.click(screen.getByText("Speaking"));
-    expect(mockNavigate).toHaveBeenCalledWith("/speaking");
-  });
+    test("clicking bottom CTA navigates to listening page", async () => {
+      const user = userEvent.setup();
 
-  test("carousel next and previous buttons change visible slide", async () => {
-    const user = userEvent.setup();
+      renderPage();
 
-    render(<HomePage />);
+      await user.click(
+        screen.getByRole("button", {
+          name: /start practicing now/i,
+        }),
+      );
 
-    expect(screen.getByText("IELTS SCORE HIGHER")).toBeInTheDocument();
+      expect(mockNavigate).toHaveBeenCalledWith("/listening");
+    });
 
-    const carouselButtons = screen.getAllByRole("button");
+    test("clicking skill cards navigates to the correct skill pages", async () => {
+      const user = userEvent.setup();
 
-    await user.click(carouselButtons[1]);
-    expect(screen.getByText("IELTS SKILLS")).toBeInTheDocument();
+      renderPage();
 
-    await user.click(carouselButtons[0]);
-    expect(screen.getByText("IELTS SCORE HIGHER")).toBeInTheDocument();
-  });
+      await user.click(screen.getByText("Listening"));
+      expect(mockNavigate).toHaveBeenCalledWith("/listening");
 
-  test("clicking slide indicator changes slide", async () => {
-    const user = userEvent.setup();
+      await user.click(screen.getByText("Reading"));
+      expect(mockNavigate).toHaveBeenCalledWith("/reading");
 
-    render(<HomePage />);
+      await user.click(screen.getByText("Writing"));
+      expect(mockNavigate).toHaveBeenCalledWith("/writing");
 
-    const buttons = screen.getAllByRole("button");
-
-    const indicatorButtons = buttons.slice(2, 5);
-
-    await user.click(indicatorButtons[2]);
-
-    expect(screen.getByText("AI-POWERED FEEDBACK")).toBeInTheDocument();
+      await user.click(screen.getByText("Speaking"));
+      expect(mockNavigate).toHaveBeenCalledWith("/speaking");
+    });
   });
 });
