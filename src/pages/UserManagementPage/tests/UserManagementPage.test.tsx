@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { UserManagementPage } from "../UserManagementPage";
 import { useAuth } from "../../../contexts/AuthContext";
+import { API_BASE } from "../../../env";
 
 const { mockNavigate, mockLogout, mockOnLogout } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -10,7 +11,7 @@ const { mockNavigate, mockLogout, mockOnLogout } = vi.hoisted(() => ({
   mockOnLogout: vi.fn(),
 }));
 
-vi.mock("react-router", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -243,7 +244,7 @@ describe("UserManagementPage", () => {
       await waitForUsers();
 
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8080/api/user?include=email,firstname,lastname,isactive,createdat,lastloginat,role",
+        `${API_BASE}/api/user?include=email,firstname,lastname,isactive,createdat,lastloginat,role`,
         expect.objectContaining({
           method: "GET",
           credentials: "include",
@@ -446,7 +447,7 @@ describe("UserManagementPage", () => {
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(
-          "http://localhost:8080/api/user",
+          `${API_BASE}/api/user`,
           expect.objectContaining({
             method: "POST",
             credentials: "include",
@@ -547,7 +548,7 @@ describe("UserManagementPage", () => {
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(
-          "http://localhost:8080/api/user/user-1",
+          `${API_BASE}/api/user/user-1`,
           expect.objectContaining({
             method: "PUT",
             credentials: "include",
@@ -586,7 +587,7 @@ describe("UserManagementPage", () => {
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(
-          "http://localhost:8080/api/user/user-1",
+          `${API_BASE}/api/user/user-1`,
           expect.objectContaining({
             method: "PUT",
             body: expect.stringContaining('"password":"new-password"'),
@@ -648,7 +649,7 @@ describe("UserManagementPage", () => {
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(
-          "http://localhost:8080/api/user/user-1",
+          `${API_BASE}/api/user/user-1`,
           expect.objectContaining({
             method: "DELETE",
             credentials: "include",

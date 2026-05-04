@@ -97,7 +97,7 @@ const {
  * behavior, not on the internal implementation of its dependencies.
  */
 
-vi.mock("react-router", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
   useParams: () => mockUseParams(),
 }));

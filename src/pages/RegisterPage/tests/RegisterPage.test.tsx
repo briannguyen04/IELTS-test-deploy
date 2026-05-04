@@ -3,13 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { RegisterPage } from "../RegisterPage";
 import { useAuth } from "../../../contexts/AuthContext";
+import { API_BASE } from "../../../env";
 
 const { mockNavigate, mockRegister } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockRegister: vi.fn(),
 }));
 
-vi.mock("react-router", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -349,16 +350,8 @@ describe("RegisterPage", () => {
 
   describe("social registration", () => {
     test.each([
-      [
-        "Google",
-        /google/i,
-        "http://localhost:8080/oauth2/authorization/google",
-      ],
-      [
-        "Facebook",
-        /facebook/i,
-        "http://localhost:8080/oauth2/authorization/facebook",
-      ],
+      ["Google", /google/i, `${API_BASE}/oauth2/authorization/google`],
+      ["Facebook", /facebook/i, `${API_BASE}/oauth2/authorization/facebook`],
     ])(
       "redirects to %s OAuth endpoint",
       async (_, buttonName, expectedHref) => {

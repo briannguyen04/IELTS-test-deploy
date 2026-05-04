@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ListeningTestScreen } from "../components/ListeningTestScreen";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
+import { API_BASE } from "../../../env";
 
 const {
   mockNavigate,
@@ -68,7 +69,7 @@ const {
   },
 }));
 
-vi.mock("react-router", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -86,7 +87,7 @@ vi.mock("../components/InstructionRenderer.tsx", () => ({
   ),
 }));
 
-vi.mock("../../../env.ts", () => ({
+vi.mock("../../../env", () => ({
   API_BASE: "http://localhost:8080",
 }));
 
@@ -294,7 +295,7 @@ describe("ListeningTestScreen", () => {
 
       expect(container.querySelector("audio")).toHaveAttribute(
         "src",
-        "http://localhost:8080/listening-audio.mp3",
+        `${API_BASE}/listening-audio.mp3`,
       );
 
       expect(screen.getByText("0:00")).toBeInTheDocument();
@@ -359,7 +360,7 @@ describe("ListeningTestScreen", () => {
 
       expect(container.querySelector("audio")).toHaveAttribute(
         "src",
-        "http://localhost:8080/",
+        `${API_BASE}/`,
       );
 
       expect(screen.getByText("1:05")).toBeInTheDocument();
