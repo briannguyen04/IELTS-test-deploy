@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { useRegisterForm, useTogglePassword } from "./hooks";
 import { NavBarUnified } from "../../components/NavBarUnified";
+import { API_BASE } from "../../env";
 
 type FieldErrors = Partial<
   Record<"firstname" | "lastname" | "email" | "password", string>
@@ -115,12 +116,13 @@ export function RegisterPage() {
   };
 
   const handleGoogleRegister = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href =
+      `${API_BASE}/oauth2/authorization/google`;
   };
 
   const handleFacebookRegister = () => {
     window.location.href =
-      "http://localhost:8080/oauth2/authorization/facebook";
+      `${API_BASE}/oauth2/authorization/facebook`;
   };
 
   return (

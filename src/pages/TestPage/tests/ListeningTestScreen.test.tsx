@@ -51,7 +51,7 @@ vi.mock("../components/InstructionRenderer.tsx", () => ({
 }));
 
 vi.mock("../../../env.ts", () => ({
-  API_BASE: "http://localhost:8080",
+  API_BASE: "${API_BASE}",
 }));
 
 vi.mock("../utils", () => ({

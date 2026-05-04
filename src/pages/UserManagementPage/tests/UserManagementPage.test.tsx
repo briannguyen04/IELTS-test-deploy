@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { UserManagementPage } from "../UserManagementPage";
 import { useAuth } from "../../../contexts/AuthContext";
+import { API_BASE } from "../../../env";
 
 const { mockNavigate, mockLogout } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -26,7 +27,7 @@ vi.mock("../../../components/Footer", () => ({
 }));
 
 vi.mock("../../../env", () => ({
-  API_BASE: "http://localhost:8080",
+  API_BASE: "${API_BASE}",
 }));
 
 vi.mock("../../../components/ui/button", () => ({
@@ -284,7 +285,7 @@ describe("UserManagementPage", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:8080/api/user",
+        `${API_BASE}/api/user`,
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({
@@ -351,7 +352,7 @@ describe("UserManagementPage", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:8080/api/user/user-1",
+        `${API_BASE}/api/user/user-1`,
         expect.objectContaining({
           method: "PUT",
         }),
@@ -390,7 +391,7 @@ describe("UserManagementPage", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:8080/api/user/user-1",
+        `${API_BASE}/api/user/user-1`,
         expect.objectContaining({
           method: "DELETE",
         }),

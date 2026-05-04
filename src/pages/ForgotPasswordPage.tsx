@@ -4,6 +4,7 @@ import { Footer } from "../components/Footer";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../env";
 
 type Step = "email" | "code" | "new-password" | "success";
 
@@ -37,7 +38,7 @@ export function ForgotPasswordPage() {
       setError("");
 
       const res = await fetch(
-        "http://localhost:8080/api/auth/forgot-password",
+        `${API_BASE}/api/auth/forgot-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -96,7 +97,7 @@ export function ForgotPasswordPage() {
       setError("");
 
       const res = await fetch(
-        "http://localhost:8080/api/auth/verify-reset-code",
+        `${API_BASE}/api/auth/verify-reset-code`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -147,7 +148,7 @@ export function ForgotPasswordPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch("http://localhost:8080/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

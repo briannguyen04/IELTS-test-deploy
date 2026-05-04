@@ -30,7 +30,7 @@ vi.mock("../../components/figma/ImageWithFallback", () => ({
 }));
 
 vi.mock("../../env", () => ({
-  API_BASE: "http://localhost:8080",
+  API_BASE: "${API_BASE}",
 }));
 
 describe("LoginPage", () => {
