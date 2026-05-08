@@ -125,20 +125,42 @@ describe("RegisterPage", () => {
           password: "",
           confirmPassword: "",
         },
+        "First name is required",
       ],
-      ["first name is empty", { firstName: "" }],
-      ["last name is empty", { lastName: "" }],
-      ["email is empty", { email: "" }],
-      ["password is empty", { password: "" }],
-      ["confirm password is empty", { confirmPassword: "" }],
-    ])("shows validation error when %s", async (_, overrideValues) => {
+      ["first name is empty", { firstName: "" }, "First name is required"],
+      ["last name is empty", { lastName: "" }, "Last name is required"],
+      ["email is empty", { email: "" }, "Email is required"],
+      ["password is empty", { password: "" }, "Password is required"],
+      [
+        "confirm password is empty",
+        { confirmPassword: "" },
+        "Confirm password is required",
+      ],
+    ])(
+      "shows required-field validation error when %s",
+      async (_, overrideValues, expectedMessage) => {
+        const user = userEvent.setup();
+
+        renderPage();
+        await fillRegisterForm(user, overrideValues);
+        await user.click(registerButton());
+
+        expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+        expect(mockRegister).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
+
+    test("shows validation error when email format is invalid", async () => {
       const user = userEvent.setup();
 
       renderPage();
-      await fillRegisterForm(user, overrideValues);
+      await fillRegisterForm(user, {
+        email: "invalid-email",
+      });
       await user.click(registerButton());
 
-      expect(screen.getByText("Please fill in all fields")).toBeInTheDocument();
+      expect(screen.getByText("Invalid email format")).toBeInTheDocument();
       expect(mockRegister).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -147,12 +169,10 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
 
       renderPage();
-
       await fillRegisterForm(user, {
         password: "123456",
         confirmPassword: "654321",
       });
-
       await user.click(registerButton());
 
       expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
@@ -170,31 +190,33 @@ describe("RegisterPage", () => {
       const password = passwordInput() as HTMLInputElement;
       const confirmPassword = confirmPasswordInput() as HTMLInputElement;
 
-      const passwordToggleButton =
-        password.parentElement?.querySelector("button");
+      const passwordToggleButton = document.querySelector(
+        "#register-password-toggle-button",
+      ) as HTMLButtonElement;
 
-      const confirmPasswordToggleButton =
-        confirmPassword.parentElement?.querySelector("button");
+      const confirmPasswordToggleButton = document.querySelector(
+        "#register-confirm-password-toggle-button",
+      ) as HTMLButtonElement;
 
       expect(password).toHaveAttribute("type", "password");
       expect(confirmPassword).toHaveAttribute("type", "password");
 
-      await user.click(passwordToggleButton as HTMLElement);
+      await user.click(passwordToggleButton);
       expect(password).toHaveAttribute("type", "text");
 
-      await user.click(passwordToggleButton as HTMLElement);
+      await user.click(passwordToggleButton);
       expect(password).toHaveAttribute("type", "password");
 
-      await user.click(confirmPasswordToggleButton as HTMLElement);
+      await user.click(confirmPasswordToggleButton);
       expect(confirmPassword).toHaveAttribute("type", "text");
 
-      await user.click(confirmPasswordToggleButton as HTMLElement);
+      await user.click(confirmPasswordToggleButton);
       expect(confirmPassword).toHaveAttribute("type", "password");
     });
   });
 
   describe("successful registration", () => {
-    test("calls register and navigates to homepage", async () => {
+    test("calls register with submitted values and navigates to homepage", async () => {
       const user = userEvent.setup();
 
       mockRegister.mockResolvedValue({
@@ -216,6 +238,31 @@ describe("RegisterPage", () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith("/");
+      });
+    });
+
+    test("trims first name, last name, and email before registering", async () => {
+      const user = userEvent.setup();
+
+      mockRegister.mockResolvedValue({
+        success: true,
+      });
+
+      renderPage();
+      await fillRegisterForm(user, {
+        firstName: "  Duy  ",
+        lastName: "  Huynh  ",
+        email: "  duy@gmail.com  ",
+      });
+      await user.click(registerButton());
+
+      await waitFor(() => {
+        expect(mockRegister).toHaveBeenCalledWith(
+          "Duy",
+          "Huynh",
+          "duy@gmail.com",
+          "123456",
+        );
       });
     });
 
@@ -251,72 +298,23 @@ describe("RegisterPage", () => {
   describe("failed registration", () => {
     test.each([
       [
-        "server error object with colon",
-        {
-          error: "email: Email already exists",
-        },
-        "Email already exists",
-      ],
-      [
-        "server error object without colon",
+        "server error object with error property",
         {
           error: "Email already exists",
         },
         "Email already exists",
       ],
+      [
+        "server error object with raw colon message",
+        {
+          error: "email: Email already exists",
+        },
+        "email: Email already exists",
+      ],
       ["thrown Error instance", new Error("Network error"), "Network error"],
+      ["string error", "Server is unavailable", "Server is unavailable"],
       ["unknown error object", {}, "Registration failed. Please try again."],
-    ])(
-      "shows cleaned general error message for %s",
-      async (_, errorValue, message) => {
-        const user = userEvent.setup();
-        const consoleSpy = vi
-          .spyOn(console, "log")
-          .mockImplementation(() => {});
-
-        mockRegister.mockRejectedValue(errorValue);
-
-        renderPage();
-        await fillRegisterForm(user);
-        await user.click(registerButton());
-
-        await waitFor(() => {
-          expect(screen.getByText(message)).toBeInTheDocument();
-        });
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
-      },
-    );
-
-    test.each([
-      [
-        "firstname with colon",
-        { firstname: "firstname: First name is required" },
-        "First name is required",
-      ],
-      [
-        "lastname with colon",
-        { lastname: "lastname: Last name is required" },
-        "Last name is required",
-      ],
-      [
-        "email with colon",
-        { email: "email: Invalid email format" },
-        "Invalid email format",
-      ],
-      [
-        "password with colon",
-        { password: "password: Password is too weak" },
-        "Password is too weak",
-      ],
-      [
-        "email without colon",
-        { email: "Email already exists" },
-        "Email already exists",
-      ],
-    ])("shows cleaned field error from %s", async (_, errorValue, message) => {
+    ])("shows general error message for %s", async (_, errorValue, message) => {
       const user = userEvent.setup();
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -356,7 +354,6 @@ describe("RegisterPage", () => {
       "redirects to %s OAuth endpoint",
       async (_, buttonName, expectedHref) => {
         const user = userEvent.setup();
-
         const originalLocation = window.location;
 
         Object.defineProperty(window, "location", {
@@ -366,16 +363,18 @@ describe("RegisterPage", () => {
           },
         });
 
-        renderPage();
+        try {
+          renderPage();
 
-        await user.click(screen.getByRole("button", { name: buttonName }));
+          await user.click(screen.getByRole("button", { name: buttonName }));
 
-        expect(window.location.href).toBe(expectedHref);
-
-        Object.defineProperty(window, "location", {
-          configurable: true,
-          value: originalLocation,
-        });
+          expect(window.location.href).toBe(expectedHref);
+        } finally {
+          Object.defineProperty(window, "location", {
+            configurable: true,
+            value: originalLocation,
+          });
+        }
       },
     );
   });

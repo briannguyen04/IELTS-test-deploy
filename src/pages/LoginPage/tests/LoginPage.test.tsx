@@ -44,8 +44,8 @@ const fillLoginForm = async (
   email = "student@gmail.com",
   password = "123456",
 ) => {
-  if (email) await user.type(emailInput(), email);
-  if (password) await user.type(passwordInput(), password);
+  if (email !== "") await user.type(emailInput(), email);
+  if (password !== "") await user.type(passwordInput(), password);
 };
 
 describe("LoginPage", () => {
@@ -77,6 +77,7 @@ describe("LoginPage", () => {
       expect(
         screen.getByRole("button", { name: /google/i }),
       ).toBeInTheDocument();
+
       expect(
         screen.getByRole("button", { name: /facebook/i }),
       ).toBeInTheDocument();
@@ -86,30 +87,36 @@ describe("LoginPage", () => {
       ).toBeInTheDocument();
 
       expect(
-        screen.getByRole("button", { name: /register/i }),
+        screen.getByRole("button", { name: /^register$/i }),
       ).toBeInTheDocument();
     });
   });
 
   describe("validation", () => {
     test.each([
-      ["empty email and password", "", ""],
-      ["empty password", "student@gmail.com", ""],
-      ["empty email", "", "123456"],
-    ])("shows validation error when %s", async (_, email, password) => {
-      const user = userEvent.setup();
+      ["empty email and password", "", "", "Email and password are required"],
+      ["empty email", "", "123456", "Email is required"],
+      ["empty password", "student@gmail.com", "", "Password is required"],
+      [
+        "invalid email format",
+        "invalid-email",
+        "123456",
+        "Email format is invalid",
+      ],
+    ])(
+      "shows validation error when %s",
+      async (_, email, password, expectedMessage) => {
+        const user = userEvent.setup();
 
-      renderPage();
-      await fillLoginForm(user, email, password);
-      await user.click(loginButton());
+        renderPage();
+        await fillLoginForm(user, email, password);
+        await user.click(loginButton());
 
-      expect(
-        screen.getByText("Please enter email and password."),
-      ).toBeInTheDocument();
-
-      expect(mockLogin).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+        expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+        expect(mockLogin).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe("password visibility", () => {
@@ -184,11 +191,27 @@ describe("LoginPage", () => {
 
   describe("failed login", () => {
     test.each([
-      ["Error object", new Error("Invalid credentials"), "Invalid credentials"],
+      [
+        "server error field",
+        { error: "Invalid email or password" },
+        "Invalid email or password",
+      ],
+      [
+        "email field error",
+        { email: "Email is required" },
+        "Email is required",
+      ],
+      [
+        "password field error",
+        { password: "Password is required" },
+        "Password is required",
+      ],
+      ["Error instance", new Error("Network error"), "Network error"],
       ["string error", "Server unavailable", "Server unavailable"],
-      ["unknown error object", {}, "Invalid email or password!"],
+      ["unknown error object", {}, "Invalid email or password"],
     ])("shows error message for %s", async (_, errorValue, expectedMessage) => {
       const user = userEvent.setup();
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
       mockLogin.mockRejectedValue(errorValue);
 
@@ -201,13 +224,15 @@ describe("LoginPage", () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
     });
   });
 
   describe("navigation buttons", () => {
     test.each([
       ["forgot password", /forgot password/i, "/forgot-password"],
-      ["register", /register/i, "/register"],
+      ["register", /^register$/i, "/register"],
     ])("navigates to %s page", async (_, buttonName, expectedPath) => {
       const user = userEvent.setup();
 
@@ -228,6 +253,7 @@ describe("LoginPage", () => {
         const user = userEvent.setup();
 
         renderPage();
+
         await user.click(screen.getByRole("button", { name: buttonName }));
 
         expect(window.location.hash).toBe(expectedHash);
