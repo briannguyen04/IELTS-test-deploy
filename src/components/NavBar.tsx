@@ -212,12 +212,14 @@ export function NavBarGuest() {
       <NavMenu />
       <div className="flex gap-[12px] items-center">
         <button
+          id="nav-login-button"
           onClick={() => navigate("/login")}
           className="px-[24px] py-[8px] bg-white text-[#1977f3] rounded-[8px] font-['DM_Sans'] font-medium text-[16px] hover:bg-gray-100 transition-colors"
         >
           Login
         </button>
         <button
+          id="nav-register-button"
           onClick={() => navigate("/register")}
           className="px-[24px] py-[8px] bg-[#fcbf65] text-black rounded-[8px] font-['DM_Sans'] font-medium text-[16px] hover:bg-[#e5ab52] transition-colors"
         >

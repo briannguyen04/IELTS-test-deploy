@@ -38,11 +38,21 @@ export function LoginPage() {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e?: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     setError("");
 
-    if (!authForm.email || !authForm.password) {
+    const formData = e?.currentTarget ? new FormData(e.currentTarget) : null;
+
+    const email = (
+      formData ? String(formData.get("email") || "") : authForm.email
+    ).trim();
+
+    const password = formData
+      ? String(formData.get("password") || "")
+      : authForm.password;
+
+    if (!email || !password) {
       setError("Please enter email and password.");
       return;
     }
@@ -50,7 +60,7 @@ export function LoginPage() {
     try {
       setLoading(true);
 
-      const loggedInUser = await login(authForm.email, authForm.password);
+      const loggedInUser = await login(email, password);
 
       const role = String(loggedInUser.role).toLowerCase();
       if (role === "administrator") {
@@ -107,72 +117,90 @@ export function LoginPage() {
               Login
             </h1>
 
-            {/* Email */}
-            <div className="mb-[30px]">
-              <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                Email
-              </label>
-              <input
-                type="email"
-                value={authForm.email}
-                onChange={(e) => authForm.setEmail(e.target.value)}
-                className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-                placeholder="your.email@example.com"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="mb-[15px]">
-              <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={togglePassword.showPassword ? "text" : "password"}
-                  value={authForm.password}
-                  onChange={(e) => authForm.setPassword(e.target.value)}
-                  className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={togglePassword.togglePassword}
-                  className="absolute right-[20px] top-1/2 -translate-y-1/2"
+            <form onSubmit={handleLogin}>
+              {/* Email */}
+              <div className="mb-[30px]">
+                <label
+                  htmlFor="login-email"
+                  className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]"
                 >
-                  {togglePassword.showPassword ? (
-                    <EyeOff className="w-[24px] h-[24px] text-gray-600" />
-                  ) : (
-                    <Eye className="w-[24px] h-[24px] text-gray-600" />
-                  )}
+                  Email
+                </label>
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  value={authForm.email}
+                  onChange={(e) => authForm.setEmail(e.target.value)}
+                  className="w-full h-[60px] px-[20px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                  placeholder="your.email@example.com"
+                  autoComplete="email"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="mb-[15px]">
+                <label
+                  htmlFor="login-password"
+                  className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    name="password"
+                    type={togglePassword.showPassword ? "text" : "password"}
+                    value={authForm.password}
+                    onChange={(e) => authForm.setPassword(e.target.value)}
+                    className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    id="toggle-password-button"
+                    type="button"
+                    onClick={togglePassword.togglePassword}
+                    className="absolute right-[20px] top-1/2 -translate-y-1/2"
+                  >
+                    {togglePassword.showPassword ? (
+                      <EyeOff className="w-[24px] h-[24px] text-gray-600" />
+                    ) : (
+                      <Eye className="w-[24px] h-[24px] text-gray-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Forgot Password Link */}
+              <div className="mb-[20px] text-right">
+                <button
+                  id="forgot-password-button"
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="font-['Inter'] font-semibold text-[20px] text-[#dc3545] hover:underline"
+                >
+                  Forgot password?
                 </button>
               </div>
-            </div>
 
-            {/* Forgot Password Link */}
-            <div className="mb-[20px] text-right">
+              {/* Error message */}
+              {error && (
+                <p className="text-red-500 text-center text-[20px] mb-[20px]">
+                  {error}
+                </p>
+              )}
+
+              {/* Login Button */}
               <button
-                onClick={() => navigate("/forgot-password")}
-                className="font-['Inter'] font-semibold text-[20px] text-[#dc3545] hover:underline"
+                id="login-submit-button"
+                type="submit"
+                disabled={loading}
+                className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Forgot password?
+                {loading ? "Logging in..." : "Login"}
               </button>
-            </div>
-
-            {/* Error message (from OLD logic) */}
-            {error && (
-              <p className="text-red-500 text-center text-[20px] mb-[20px]">
-                {error}
-              </p>
-            )}
-
-            {/* Login Button */}
-            <button
-              onClick={() => handleLogin()}
-              disabled={loading}
-              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading ? "Logging in..." : "Login"}
-            </button>
+            </form>
 
             {/* Divider */}
             <div className="flex items-center gap-[20px] mb-[30px]">
@@ -186,6 +214,8 @@ export function LoginPage() {
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
               <button
+                id="google-login-button"
+                type="button"
                 onClick={handleGoogleLogin}
                 className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
               >
@@ -196,6 +226,8 @@ export function LoginPage() {
               </button>
 
               <button
+                id="facebook-login-button"
+                type="button"
                 onClick={handleFacebookLogin}
                 className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
               >
@@ -210,6 +242,8 @@ export function LoginPage() {
             <p className="font-['Inter'] text-[22px] text-black text-center">
               Don&apos;t have an account?{" "}
               <button
+                id="register-button"
+                type="button"
                 onClick={() => navigate("/register")}
                 className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
               >

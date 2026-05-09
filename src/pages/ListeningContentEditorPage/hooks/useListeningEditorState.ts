@@ -514,10 +514,6 @@ export function useListeningEditorState(isEditMode: boolean, id?: string) {
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -535,10 +531,6 @@ export function useListeningEditorState(isEditMode: boolean, id?: string) {
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
       return;
     }
 
@@ -561,10 +553,6 @@ export function useListeningEditorState(isEditMode: boolean, id?: string) {
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -583,10 +571,6 @@ export function useListeningEditorState(isEditMode: boolean, id?: string) {
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
       return;
     }
 

@@ -8,7 +8,7 @@ export default function App() {
     <AuthProvider>
       <RouterProvider router={router} />
 
-      <Toaster 
+      <Toaster
         position="top-right"
         richColors
         closeButton

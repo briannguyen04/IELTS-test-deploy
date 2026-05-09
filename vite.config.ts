@@ -167,5 +167,21 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/setupTests.ts",
     globals: true,
+
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/coverage/**",
+
+        // Exclude hook folders that you do not want in the coverage report yet
+        "src/pages/RegisterPage/hooks/**",
+        "src/pages/LoginPage/hooks/**",
+      ],
+    },
   },
 });

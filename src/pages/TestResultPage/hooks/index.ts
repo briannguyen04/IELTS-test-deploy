@@ -22,4 +22,3 @@ export { useDeleteWritingCriterionFeedbackById } from "./useDeleteWritingCriteri
 export { useGetAllTutorBandScoreByWritingId } from "./useGetAllTutorBandScoreByWritingId";
 export { usePutUpsertTutorBandScore } from "./usePutUpsertTutorBandScore";
 export { useWritingReviewRefreshStore } from "./useWritingReviewRefreshStore";
-export { useRefreshStudyPlanAfterSubmission } from "./useRefreshStudyPlanAfterSubmission";

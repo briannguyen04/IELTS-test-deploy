@@ -1,6 +1,12 @@
-import { AlertCircle, BookOpen, CheckCircle, Target } from "lucide-react";
+import {
+  AlertCircle,
+  BookOpen,
+  CheckCircle,
+  RefreshCw,
+  Target,
+} from "lucide-react";
 import { NavBarUnified } from "../../components/NavBarUnified";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Footer } from "../../components/Footer";
 import {
   ActiveStudyPlan,
@@ -8,23 +14,17 @@ import {
   mapDirectionApiTypeToUi,
   mapFocusTypeApiTypeToUi,
   mapSkillTypeApiTypeToUi,
-  mapStrengthStatusApiTypeToUi,
   mapTargetMetricApiTypeToUi,
   mapTaskStatusApiTypeToUi,
-  mapWeaknessStatusApiTypeToUi,
 } from "./types";
-import {
-  getDirectionIcon,
-  getStrengthStatusColor,
-  getTaskStatusColor,
-  getWeaknessStatusColor,
-} from "./utils";
+import { getDirectionIcon, getTaskStatusColor } from "./utils";
 import {
   useGetActiveStudyPlanByUserIdAndSkill,
+  useGetAnalyticsSubmissionCountsByUserId,
   useGetHasActiveStudyPlan,
-  useGetSubmissionCountBySkillByUserId,
   usePostLearnerStudyPlan,
   usePutFinalizeLearnerStudyPlanById,
+  usePutRefreshStudyPlan,
 } from "./hooks";
 import { useAuth } from "../../contexts/AuthContext";
 import { mapTopicTagApiToUi } from "../ListeningContentEditorPage/types";
@@ -61,13 +61,13 @@ export default function StudyPlanPage() {
   // Get submission count by skill for user
   // =========================
 
-  const getSubmissionCountBySkillByUserId =
-    useGetSubmissionCountBySkillByUserId();
+  const getAnalyticsSubmissionCountsByUserId =
+    useGetAnalyticsSubmissionCountsByUserId();
 
   useEffect(() => {
     if (!userId) return;
 
-    void getSubmissionCountBySkillByUserId.get({
+    void getAnalyticsSubmissionCountsByUserId.get({
       userId,
     });
   }, [userId]);
@@ -78,17 +78,17 @@ export default function StudyPlanPage() {
 
   const submissionsBySkill: Record<BackendSkillType, number> = {
     LISTENING:
-      getSubmissionCountBySkillByUserId.submissionCountBySkill.listeningCount ??
-      0,
+      getAnalyticsSubmissionCountsByUserId.analyticsSubmissionCounts
+        .listeningCount ?? 0,
     READING:
-      getSubmissionCountBySkillByUserId.submissionCountBySkill.readingCount ??
-      0,
+      getAnalyticsSubmissionCountsByUserId.analyticsSubmissionCounts
+        .readingCount ?? 0,
     WRITING:
-      getSubmissionCountBySkillByUserId.submissionCountBySkill.writingCount ??
-      0,
+      getAnalyticsSubmissionCountsByUserId.analyticsSubmissionCounts
+        .writingCount ?? 0,
     SPEAKING:
-      getSubmissionCountBySkillByUserId.submissionCountBySkill.speakingCount ??
-      0,
+      getAnalyticsSubmissionCountsByUserId.analyticsSubmissionCounts
+        .speakingCount ?? 0,
   };
 
   const minSubmissionsRequiredBySkill: Record<BackendSkillType, number> = {
@@ -218,6 +218,35 @@ export default function StudyPlanPage() {
     setActiveStudyPlanBySkill((prev) => ({
       ...prev,
       [selectedSkill]: result,
+    }));
+  };
+
+  // =========================
+  // Put finalize learner study plan
+  // =========================
+
+  const putRefreshStudyPlan = usePutRefreshStudyPlan();
+
+  // =========================
+  // Handle refreshing study plan
+  // =========================
+
+  const handleRefreshStudyPlanStatus = async () => {
+    if (!userId || !selectedSkill) return;
+
+    await putRefreshStudyPlan.put({
+      userId,
+      skill: selectedSkill,
+    });
+
+    const activePlanResult = await getActiveStudyPlanByUserIdAndSkill.get({
+      userId,
+      skill: selectedSkill,
+    });
+
+    setActiveStudyPlanBySkill((prev) => ({
+      ...prev,
+      [selectedSkill]: activePlanResult,
     }));
   };
 
@@ -408,12 +437,25 @@ export default function StudyPlanPage() {
                   <Target className="w-[24px] h-[24px] text-[#1977f3]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900 mb-[8px]">
-                    Complete Tasks to Finalize Your Study Plan
-                  </h3>
+                  <div className="flex items-start justify-between gap-[16px] mb-[8px]">
+                    <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900 mb-[8px]">
+                      Complete Tasks to Finalize Your Study Plan
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={handleRefreshStudyPlanStatus}
+                      className="flex items-center gap-[8px] px-[14px] py-[8px] rounded-[8px] font-['Inter'] text-[13px] font-semibold transition-all shrink-0 bg-white text-[#1977f3] border border-blue-200 hover:bg-blue-100 hover:border-[#1977f3]"
+                    >
+                      <RefreshCw className="w-[16px] h-[16px]" />
+                      Refresh
+                    </button>
+                  </div>
+
                   <p className="font-['Inter'] text-[14px] text-gray-700 mb-[12px]">
                     To finalize your study plan, you need:
                   </p>
+
                   <ul className="space-y-[8px] mb-[12px]">
                     <li className="flex items-center gap-[8px]">
                       {taskCompletionPercentage >=
@@ -587,11 +629,6 @@ export default function StudyPlanPage() {
                       <h3 className="font-['Inter'] font-bold text-[16px] text-gray-900">
                         Strength Block {idx + 1}
                       </h3>
-                      <span
-                        className={`px-[12px] py-[4px] rounded-full font-['Inter'] text-[12px] font-semibold border ${getStrengthStatusColor(strength.status)}`}
-                      >
-                        {mapStrengthStatusApiTypeToUi(strength.status)}
-                      </span>
                     </div>
 
                     <div className="space-y-[8px] mb-[12px]">
@@ -686,11 +723,6 @@ export default function StudyPlanPage() {
                       <h3 className="font-['Inter'] font-bold text-[16px] text-gray-900">
                         Weakness Block {idx + 1}
                       </h3>
-                      <span
-                        className={`px-[12px] py-[4px] rounded-full font-['Inter'] text-[12px] font-semibold border ${getWeaknessStatusColor(weakness.status)}`}
-                      >
-                        {mapWeaknessStatusApiTypeToUi(weakness.status)}
-                      </span>
                     </div>
 
                     <div className="space-y-[8px] mb-[12px]">
