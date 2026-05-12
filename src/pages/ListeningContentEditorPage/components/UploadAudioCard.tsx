@@ -94,8 +94,6 @@ export function UploadAudioCard({
 
           <p className="font-['Inter'] text-[12px] text-gray-500">
             Formats: .mp3, .wav
-            <br />
-            Max file size: 25 MB
           </p>
 
           <input

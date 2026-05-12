@@ -48,8 +48,6 @@ export function UploadThumbnailCard({
 
           <p className="font-['Inter'] text-[12px] text-gray-500">
             Formats: .jpg, .png
-            <br />
-            Max file size: 25 MB
           </p>
 
           <input
