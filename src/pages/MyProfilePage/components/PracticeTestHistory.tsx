@@ -1,27 +1,13 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { CustomSelect } from "../../../components/ui/custom-select";
 import { Button } from "../../../components/ui/button";
-import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { SelectV2 } from "./SelectV2";
-import {
-  useDeletePracticeSubmissionById,
-  useGetAllPracticeSubmissionsByUserId,
-} from "../hooks";
+import { useGetAllPracticeSubmissionsByUserId } from "../hooks";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export function PracticeTestHistory() {
-  // const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  // const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
-
-  // const handleOpenDeleteDialog = (index: number) => {
-  //   setDeleteIndex(index);
-  //   setShowDeleteDialog(true);
-  // };
-
   // const handleCloseDeleteDialog = () => {
   //   setDeleteIndex(null);
   //   setShowDeleteDialog(false);
@@ -87,23 +73,6 @@ export function PracticeTestHistory() {
     );
 
   // =========================
-  // Delete practice submission by id
-  // =========================
-
-  const deletePracticeSubmissionById = useDeletePracticeSubmissionById();
-
-  // =========================
-  // Handle click delete button
-  // =========================
-
-  const handleOnClickDeleteButton = async (id: string) => {
-    if (!userId) return;
-
-    await deletePracticeSubmissionById.remove({ id });
-    await getAllPracticeSubmissionsByUserId.get({ userId: userId });
-  };
-
-  // =========================
   // Handle click review button
   // =========================
 
@@ -131,6 +100,22 @@ export function PracticeTestHistory() {
   useEffect(() => {
     setPaginationPage(1);
   }, [filteredSubmissions.length]);
+
+  // =========================
+  // Format band score
+  // =========================
+
+  const formatBandScore = (score?: number | null, skill?: string | null) => {
+    if (score == null) {
+      return "-";
+    }
+
+    if (skill === "WRITING" && score === 0) {
+      return "Not Scored";
+    }
+
+    return score.toFixed(1);
+  };
 
   return (
     <>
@@ -179,13 +164,13 @@ export function PracticeTestHistory() {
               <th className="px-[20px] py-[14px] text-left font-['Inter'] text-[13px] font-semibold text-gray-700 uppercase w-[120px]">
                 Time spent
               </th>
-              <th className="px-[20px] py-[14px] text-center font-['Inter'] text-[13px] font-semibold text-gray-700 uppercase w-[160px]">
+              <th className="px-[20px] py-[14px] text-center font-['Inter'] text-[13px] font-semibold text-gray-700 uppercase w-[120px]">
                 Action
               </th>
             </tr>
           </thead>
           <tbody>
-            {paginatedSubmissions.map((test, index) => (
+            {paginatedSubmissions.map((test) => (
               <tr
                 key={test.id}
                 className="border-t border-gray-200 hover:bg-gray-50"
@@ -198,14 +183,14 @@ export function PracticeTestHistory() {
                     {test.title}
                   </div>
                 </td>
-                <td className="px-[20px] py-[16px] font-['Inter'] text-[14px] text-gray-900">
-                  {test.correctAnswerPercentage + "%" || "-"}
+                <td className="px-[20px] py-[16px] font-['Inter'] text-[14px] text-gray-900 whitespace-nowrap">
+                  {formatBandScore(test.score, test.skill)}
                 </td>
                 <td className="px-[20px] py-[16px] font-['Inter'] text-[14px] text-gray-900 whitespace-nowrap">
                   {test.timeTaken || "-"}
                 </td>
                 <td className="px-[20px] py-[16px]">
-                  <div className="flex items-center justify-center gap-[8px]">
+                  <div className="flex items-center justify-center">
                     <Button
                       variant="default"
                       className="bg-[#1e3a5f] hover:bg-[#152b47] font-['Inter'] text-[13px] h-[36px]"
@@ -213,51 +198,6 @@ export function PracticeTestHistory() {
                     >
                       Review
                     </Button>
-                    <button
-                      onClick={() => handleOnClickDeleteButton(test.id)}
-                      className="p-[8px] hover:bg-red-50 rounded-[6px] transition-colors group"
-                      title="Delete test"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          d="M2 4H3.33333H14"
-                          stroke="currentColor"
-                          className="stroke-red-600 group-hover:stroke-red-700"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.33331 4.00016V2.66683C5.33331 2.31321 5.47379 1.97407 5.72384 1.72402C5.97389 1.47397 6.31302 1.3335 6.66665 1.3335H9.33331C9.68694 1.3335 10.0261 1.47397 10.2761 1.72402C10.5262 1.97407 10.6666 2.31321 10.6666 2.66683V4.00016M12.6666 4.00016V13.3335C12.6666 13.6871 12.5262 14.0263 12.2761 14.2763C12.0261 14.5264 11.6869 14.6668 11.3333 14.6668H4.66665C4.31302 14.6668 3.97389 14.5264 3.72384 14.2763C3.47379 14.0263 3.33331 13.6871 3.33331 13.3335V4.00016H12.6666Z"
-                          stroke="currentColor"
-                          className="stroke-red-600 group-hover:stroke-red-700"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6.66669 7.3335V11.3335"
-                          stroke="currentColor"
-                          className="stroke-red-600 group-hover:stroke-red-700"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M9.33331 7.3335V11.3335"
-                          stroke="currentColor"
-                          className="stroke-red-600 group-hover:stroke-red-700"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -314,20 +254,6 @@ export function PracticeTestHistory() {
           </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      {/* <ConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={handleCloseDeleteDialog}
-        onConfirm={() => {
-          if (deleteIndex !== null) {
-            handleDeleteTest(deleteIndex);
-          }
-          handleCloseDeleteDialog();
-        }}
-        title="Delete Test"
-        message="Are you sure you want to delete this test?"
-      /> */}
     </>
   );
 }
