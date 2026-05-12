@@ -44,25 +44,42 @@ export function LoginPage() {
 
     const formData = e?.currentTarget ? new FormData(e.currentTarget) : null;
 
-    const email = (
+    const submittedEmail = (
       formData ? String(formData.get("email") || "") : authForm.email
     ).trim();
 
-    const password = formData
+    const submittedPassword = formData
       ? String(formData.get("password") || "")
       : authForm.password;
 
-    if (!email || !password) {
-      setError("Please enter email and password.");
+    if (!submittedEmail && !submittedPassword) {
+      setError("Email and password are required");
+      return;
+    }
+
+    if (!submittedEmail) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!submittedPassword) {
+      setError("Password is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submittedEmail)) {
+      setError("Email format is invalid");
       return;
     }
 
     try {
       setLoading(true);
 
-      const loggedInUser = await login(email, password);
+      const loggedInUser = await login(submittedEmail, submittedPassword);
 
       const role = String(loggedInUser.role).toLowerCase();
+
       if (role === "administrator") {
         navigate("/content-management");
       } else if (role === "tutor") {
@@ -71,9 +88,34 @@ export function LoginPage() {
         navigate("/");
       }
     } catch (err: any) {
-      const msg =
-        typeof err === "string" ? err : err?.message ? String(err.message) : "";
-      setError(msg || "Invalid email or password!");
+      console.log("LOGIN ERR:", err);
+
+      if (err?.error) {
+        setError(String(err.error));
+        return;
+      }
+
+      if (err?.email) {
+        setError(String(err.email));
+        return;
+      }
+
+      if (err?.password) {
+        setError(String(err.password));
+        return;
+      }
+
+      if (err?.message) {
+        setError(String(err.message));
+        return;
+      }
+
+      if (typeof err === "string") {
+        setError(err);
+        return;
+      }
+
+      setError("Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -117,7 +159,7 @@ export function LoginPage() {
               Login
             </h1>
 
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} noValidate>
               {/* Email */}
               <div className="mb-[30px]">
                 <label

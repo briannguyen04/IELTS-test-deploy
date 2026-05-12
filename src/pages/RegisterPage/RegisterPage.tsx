@@ -79,14 +79,34 @@ export function RegisterPage() {
       ? String(formData.get("confirmPassword") || "")
       : confirmPassword;
 
-    if (
-      !submittedFirstName ||
-      !submittedLastName ||
-      !submittedEmail ||
-      !submittedPassword ||
-      !submittedConfirmPassword
-    ) {
-      setGeneralError("Please fill in all fields");
+    if (!submittedFirstName) {
+      setGeneralError("First name is required");
+      return;
+    }
+
+    if (!submittedLastName) {
+      setGeneralError("Last name is required");
+      return;
+    }
+
+    if (!submittedEmail) {
+      setGeneralError("Email is required");
+      return;
+    }
+
+    if (!submittedPassword) {
+      setGeneralError("Password is required");
+      return;
+    }
+
+    if (!submittedConfirmPassword) {
+      setGeneralError("Confirm password is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submittedEmail)) {
+      setGeneralError("Invalid email format");
       return;
     }
 
@@ -109,39 +129,18 @@ export function RegisterPage() {
     } catch (err: any) {
       console.log("REGISTER ERR:", err);
 
-      // Server validation
       if (err?.error) {
-        const raw = String(err.error);
-        const cleanMsg = raw.includes(":")
-          ? raw.split(":").slice(1).join(":").trim()
-          : raw;
-
-        setGeneralError(cleanMsg);
+        setGeneralError(String(err.error));
         return;
       }
 
-      const fieldOrder: Array<keyof FieldErrors> = [
-        "firstname",
-        "lastname",
-        "email",
-        "password",
-      ];
-
-      for (const field of fieldOrder) {
-        if (err?.[field]) {
-          const raw = String(err[field]);
-          const cleanMsg = raw.includes(":")
-            ? raw.split(":").slice(1).join(":").trim()
-            : raw;
-
-          setGeneralError(cleanMsg);
-          return;
-        }
+      if (err?.message) {
+        setGeneralError(String(err.message));
+        return;
       }
 
-      // fallback (or thrown Error)
-      if (err instanceof Error && err.message) {
-        setGeneralError(err.message);
+      if (typeof err === "string") {
+        setGeneralError(err);
         return;
       }
 
@@ -189,7 +188,7 @@ export function RegisterPage() {
               Register
             </h1>
 
-            <form id="register-form" onSubmit={handleRegister}>
+            <form id="register-form" onSubmit={handleRegister} noValidate>
               {/* First Name & Last Name */}
               <div className="grid grid-cols-2 gap-[20px] mb-[30px]">
                 <div>

@@ -160,6 +160,7 @@ export function Profile({}: ProfileProps) {
   return (
     <div className="relative">
       <div
+        id="nav-profile-avatar"
         className="content-stretch flex gap-[10px] items-start relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onClick={() => setIsOpen(!isOpen)}
       >

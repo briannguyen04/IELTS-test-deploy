@@ -129,6 +129,7 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
 
           {(isLearner || isAdministrator || isTutor) && (
             <button
+              id="profile-dropdown-logout-button"
               onClick={handleLogoutClick}
               className="w-full flex items-center gap-[10px] p-[10px] rounded-[6px] hover:bg-gray-100 transition-colors"
             >
