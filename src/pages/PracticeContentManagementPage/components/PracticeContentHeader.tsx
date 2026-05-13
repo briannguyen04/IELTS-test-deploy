@@ -17,7 +17,11 @@ export function PracticeContentHeader({ onAddNew }: Props) {
         </p>
       </div>
 
-      <Button onClick={onAddNew} className="bg-[#1977f3] hover:bg-[#1567d3]">
+      <Button
+        id="practice-content-add-new-button"
+        onClick={onAddNew}
+        className="bg-[#1977f3] hover:bg-[#1567d3]"
+      >
         <Plus className="w-5 h-5 mr-2" />
         Add New Content
       </Button>
