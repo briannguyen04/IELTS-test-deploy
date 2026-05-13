@@ -25,13 +25,6 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { API_BASE } from "../../env";
 import { NavBarUnified } from "../../components/NavBarUnified";
 import {
@@ -451,6 +444,17 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     { value: "Inactive", label: "Inactive" },
   ];
 
+  const formRoleOptions: SelectOption<UserData["role"]>[] = [
+    { value: "Learner", label: "Learner" },
+    { value: "Tutor", label: "Tutor" },
+    { value: "Administrator", label: "Administrator" },
+  ];
+
+  const formStatusOptions: SelectOption<UserData["status"]>[] = [
+    { value: "Active", label: "Active" },
+    { value: "Inactive", label: "Inactive" },
+  ];
+
   // =========================
   // Derived statistics for cards
   // =========================
@@ -529,6 +533,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               </p>
             </div>
             <Button
+              id="user-management-add-new-user-button"
               onClick={handleAddNew}
               className="bg-[#1977f3] hover:bg-[#1567d3]"
             >
@@ -613,6 +618,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
+                id="user-management-search-input"
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -621,6 +627,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             </div>
 
             <SelectV2
+              buttonId="user-management-role-filter-button"
               value={filterRole}
               onChange={handleRoleFilterChange}
               options={roleOptions}
@@ -629,6 +636,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             />
 
             <SelectV2
+              buttonId="user-management-status-filter-button"
               value={filterStatus}
               onChange={handleStatusFilterChange}
               options={statusOptions}
@@ -751,6 +759,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
                     {/* Actions */}
                     <div className="flex items-center justify-center gap-[8px]">
                       <Button
+                        id={`user-management-edit-button-${user.id}`}
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(user)}
@@ -760,6 +769,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
                       </Button>
 
                       <Button
+                        id={`user-management-delete-button-${user.id}`}
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(user.id)}
@@ -793,18 +803,18 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="user-form-first-name-input">First Name</Label>
                 <Input
-                  id="firstName"
+                  id="user-form-first-name-input"
                   value={formFirstName}
                   onChange={(e) => setFormFirstName(e.target.value)}
                   placeholder="John"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="user-form-last-name-input">Last Name</Label>
                 <Input
-                  id="lastName"
+                  id="user-form-last-name-input"
                   value={formLastName}
                   onChange={(e) => setFormLastName(e.target.value)}
                   placeholder="Smith"
@@ -813,9 +823,9 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="user-form-email-input">Email</Label>
               <Input
-                id="email"
+                id="user-form-email-input"
                 type="email"
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
@@ -824,25 +834,22 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={formRole} onValueChange={handleFormRoleChange}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Learner">Learner</SelectItem>
-                  <SelectItem value="Tutor">Tutor</SelectItem>
-                  <SelectItem value="Administrator">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="user-form-role-select-button">Role</Label>
+              <SelectV2
+                buttonId="user-form-role-select-button"
+                value={formRole}
+                onChange={handleFormRoleChange}
+                options={formRoleOptions}
+                placeholder="Select role"
+              />
             </div>
 
             {/* Password field */}
             {!editingUser ? (
               <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="user-form-password-input">Password</Label>
                 <Input
-                  id="user-password-input"
+                  id="user-form-password-input"
                   name="user_password_input"
                   type="password"
                   autoComplete="new-password"
@@ -855,9 +862,11 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               </div>
             ) : (
               <div className="grid gap-2">
-                <Label htmlFor="password">Password (optional)</Label>
+                <Label htmlFor="user-form-password-input">
+                  Password (optional)
+                </Label>
                 <Input
-                  id="user-password-input"
+                  id="user-form-password-input"
                   name="user_password_input"
                   type="password"
                   autoComplete="new-password"
@@ -876,19 +885,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
             {/* Status only in edit */}
             {editingUser && (
               <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
+                <Label htmlFor="user-form-status-select-button">Status</Label>
+                <SelectV2
+                  buttonId="user-form-status-select-button"
                   value={formStatus}
-                  onValueChange={handleFormStatusChange}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                  onChange={handleFormStatusChange}
+                  options={formStatusOptions}
+                  placeholder="Select status"
+                />
               </div>
             )}
 
@@ -900,10 +904,19 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              id="user-form-cancel-button"
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
+              id={
+                editingUser
+                  ? "user-form-update-button"
+                  : "user-form-create-button"
+              }
               onClick={handleSave}
               className="bg-[#1977f3] hover:bg-[#1567d3]"
             >
