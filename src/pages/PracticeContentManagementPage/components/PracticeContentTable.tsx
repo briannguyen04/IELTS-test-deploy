@@ -122,6 +122,7 @@ export function PracticeContentTable({ contents, onEdit, onDelete }: Props) {
               {/* Actions */}
               <div className="flex items-center justify-center gap-[8px]">
                 <Button
+                  id={`practice-content-edit-button-${content.id}`}
                   variant="ghost"
                   size="sm"
                   onClick={() => onEdit(content)}
@@ -131,6 +132,7 @@ export function PracticeContentTable({ contents, onEdit, onDelete }: Props) {
                 </Button>
 
                 <Button
+                  id={`practice-content-delete-button-${content.id}`}
                   variant="ghost"
                   size="sm"
                   onClick={() => onDelete(content.id)}

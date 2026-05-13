@@ -29,6 +29,7 @@ export function EditorHeader({
             {/* Draft / Published toggle */}
             <div className="flex gap-[8px] bg-gray-100 rounded-[8px] p-[4px]">
               <button
+                id="editor-header-draft-button"
                 onClick={() => onStatusChange("Draft")}
                 className={`px-[16px] py-[6px] rounded-[6px] font-['Inter'] font-medium text-[14px] transition-colors ${
                   status === "Draft"
@@ -40,6 +41,7 @@ export function EditorHeader({
               </button>
 
               <button
+                id="editor-header-published-button"
                 onClick={() => onStatusChange("Published")}
                 className={`px-[16px] py-[6px] rounded-[6px] font-['Inter'] font-medium text-[14px] transition-colors ${
                   status === "Published"
@@ -52,6 +54,7 @@ export function EditorHeader({
             </div>
 
             <Button
+              id="editor-header-cancel-button"
               onClick={onCancel}
               disabled={disableCancel}
               variant="outline"
@@ -61,6 +64,7 @@ export function EditorHeader({
             </Button>
 
             <Button
+              id="editor-header-save-exit-button"
               onClick={onSaveExit}
               className="bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
             >
