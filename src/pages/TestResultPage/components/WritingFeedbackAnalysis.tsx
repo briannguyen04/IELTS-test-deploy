@@ -32,7 +32,7 @@ import {
 import {
   SelectOption,
   SelectV2,
-} from "../../MyProfilePage/components/SelectV2.tsx";
+} from "../../TutorDashboardPage/components/SelectV2.tsx";
 
 type Props = {
   submissionId: string;

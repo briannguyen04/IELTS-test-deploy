@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Input } from "../../../components/ui/input";
-import { SelectV2 } from "./SelectV2";
+import { SelectV2 } from "../../TutorDashboardPage/components";
 import { useGetAllPracticeSubmissionsByUserId } from "../hooks";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";

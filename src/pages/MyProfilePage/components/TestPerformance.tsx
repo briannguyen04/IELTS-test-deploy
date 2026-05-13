@@ -40,7 +40,7 @@ import {
   usePutUserTargetBandById,
 } from "../hooks";
 import { useAuth } from "../../../contexts/AuthContext";
-import { SelectV2 } from "./SelectV2";
+import { SelectV2 } from "../../TutorDashboardPage/components";
 
 export function TestPerformance() {
   // =========================
