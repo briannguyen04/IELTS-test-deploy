@@ -39,6 +39,7 @@ export function SupportingImagesBlock({
           </p>
         </div>
         <Button
+          id="supporting-images-add-images-button"
           onClick={() => multiImageInputRef.current?.click()}
           size="sm"
           className="bg-[#1977f3] hover:bg-[#1567d3]"
@@ -49,6 +50,7 @@ export function SupportingImagesBlock({
       </div>
 
       <input
+        id="supporting-images-file-input"
         type="file"
         multiple
         accept=".jpg,.jpeg,.png"
@@ -79,12 +81,14 @@ export function SupportingImagesBlock({
                   </p>
                   <div className="flex items-center gap-[4px]">
                     <input
+                      id={`supporting-images-url-input-${image.id}`}
                       type="text"
                       value={image.url}
                       readOnly
                       className="flex-1 px-[8px] py-[4px] bg-white border border-gray-200 rounded-[4px] font-['Inter'] text-[11px] text-gray-700"
                     />
                     <button
+                      id={`supporting-images-copy-url-button-${image.id}`}
                       onClick={() => handleCopyUrl(image.url || "")}
                       className="p-[4px] hover:bg-gray-200 rounded-[4px] transition-colors"
                       title="Copy URL"
@@ -110,6 +114,7 @@ export function SupportingImagesBlock({
               <div className="px-[12px] py-[10px] border-t border-gray-200">
                 {!image.saved ? (
                   <Button
+                    id={`supporting-images-save-button-${image.id}`}
                     onClick={() => handleSaveImage(image.id)}
                     className="w-full bg-[#1977f3] hover:bg-[#1567d3] font-['Inter'] text-[12px] h-[32px]"
                   >
@@ -119,6 +124,7 @@ export function SupportingImagesBlock({
                 ) : (
                   <>
                     <Button
+                      id={`supporting-images-remove-button-${image.id}`}
                       onClick={() => handleRemoveImage(image.id)}
                       variant="outline"
                       className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400 font-['Inter'] text-[12px] h-[32px]"

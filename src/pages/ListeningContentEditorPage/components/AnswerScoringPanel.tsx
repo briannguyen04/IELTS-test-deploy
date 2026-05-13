@@ -216,6 +216,7 @@ export function AnswerScoringPanel({
         </Label>
 
         <SelectV2
+          buttonId="answer-scoring-question-type-select-button"
           value={questionType}
           onChange={(value) => {
             setQuestionType(value as ListeningQuestionType);
@@ -233,6 +234,7 @@ export function AnswerScoringPanel({
         </Label>
 
         <SelectV2
+          buttonId="answer-scoring-topic-tag-select-button"
           value={topicTag}
           onChange={(value) => {
             setTopicTag(value as TopicTag);
@@ -258,6 +260,7 @@ export function AnswerScoringPanel({
               >
                 <span>{ans}</span>
                 <button
+                  id={`answer-scoring-remove-answer-button-${i + 1}`}
                   onClick={() => removeCorrectAnswer(i)}
                   className="hover:bg-blue-200 rounded-full p-[2px] transition-colors"
                 >
@@ -269,6 +272,7 @@ export function AnswerScoringPanel({
 
           <div className="flex gap-[8px]">
             <Input
+              id="answer-scoring-correct-answer-input"
               placeholder="Type an answer and press Enter"
               value={newAnswerInput}
               onChange={(e) => setNewAnswerInput(e.target.value)}
@@ -280,6 +284,7 @@ export function AnswerScoringPanel({
               }}
             />
             <Button
+              id="answer-scoring-add-answer-button"
               onClick={addCorrectAnswer}
               disabled={!newAnswerInput.trim()}
               className="bg-[#1977f3] hover:bg-[#1567d3]"
@@ -298,6 +303,7 @@ export function AnswerScoringPanel({
       {/* Actions */}
       <div className="mt-[24px] flex items-center gap-[12px]">
         <Button
+          id="answer-scoring-save-question-button"
           onClick={handleSaveQuestion}
           className="bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
         >
@@ -305,6 +311,7 @@ export function AnswerScoringPanel({
         </Button>
 
         <Button
+          id="answer-scoring-cancel-question-button"
           onClick={handleCancelQuestion}
           className="bg-gray-200 hover:bg-gray-300 font-['Inter']"
         >

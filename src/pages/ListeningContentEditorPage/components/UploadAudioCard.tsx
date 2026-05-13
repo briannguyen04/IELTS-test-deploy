@@ -82,6 +82,7 @@ export function UploadAudioCard({
 
       {!audioPreview ? (
         <div
+          id="upload-audio-drop-zone"
           className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -97,6 +98,7 @@ export function UploadAudioCard({
           </p>
 
           <input
+            id="upload-audio-file-input"
             type="file"
             ref={inputRef}
             onChange={onFileChange}
@@ -105,6 +107,7 @@ export function UploadAudioCard({
           />
 
           <Button
+            id="upload-audio-browse-button"
             onClick={() => inputRef.current?.click()}
             className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
           >
@@ -116,6 +119,7 @@ export function UploadAudioCard({
           <div className="bg-gray-100 rounded-[8px] p-[16px] mb-[12px]">
             <div className="flex items-center gap-[12px]">
               <button
+                id="upload-audio-play-pause-button"
                 onClick={togglePlay}
                 className="w-[40px] h-[40px] bg-[#1977f3] hover:bg-[#1567d3] rounded-full flex items-center justify-center transition-colors"
               >
@@ -150,6 +154,7 @@ export function UploadAudioCard({
 
           {!audioSaved ? (
             <Button
+              id="upload-audio-save-button"
               onClick={onSave}
               className="w-full bg-[#1977f3] hover:bg-[#1567d3] font-['Inter'] text-[14px]"
               size="sm"
@@ -159,6 +164,7 @@ export function UploadAudioCard({
             </Button>
           ) : (
             <Button
+              id="upload-audio-remove-button"
               onClick={() => {
                 setIsPlaying(false);
                 onRemove();

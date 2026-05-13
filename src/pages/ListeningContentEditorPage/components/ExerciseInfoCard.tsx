@@ -70,6 +70,7 @@ export function ExerciseInfoCard({
             Title
           </Label>
           <Input
+            id="exercise-info-title-input"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder="Enter exercise title…"
@@ -133,6 +134,7 @@ export function ExerciseInfoCard({
             Duration (minutes)
           </Label>
           <Input
+            id="exercise-info-duration-input"
             type="number"
             value={durationMinutes}
             onChange={(e) => onDurationChange(Number(e.target.value))}

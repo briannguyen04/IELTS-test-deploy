@@ -36,6 +36,7 @@ export function UploadThumbnailCard({
 
       {!thumbnailPreview ? (
         <div
+          id="upload-thumbnail-drop-zone"
           className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -51,6 +52,7 @@ export function UploadThumbnailCard({
           </p>
 
           <input
+            id="upload-thumbnail-file-input"
             type="file"
             ref={inputRef}
             onChange={onFileChange}
@@ -59,6 +61,7 @@ export function UploadThumbnailCard({
           />
 
           <Button
+            id="upload-thumbnail-browse-button"
             onClick={onBrowseClick}
             className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
           >
@@ -77,6 +80,7 @@ export function UploadThumbnailCard({
 
           {!thumbnailSaved ? (
             <Button
+              id="upload-thumbnail-save-button"
               onClick={onSave}
               className="w-full bg-[#1977f3] hover:bg-[#1567d3] font-['Inter'] text-[14px]"
               size="sm"
@@ -86,6 +90,7 @@ export function UploadThumbnailCard({
             </Button>
           ) : (
             <Button
+              id="upload-thumbnail-remove-button"
               onClick={onRemove}
               variant="outline"
               className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400 font-['Inter'] text-[14px]"

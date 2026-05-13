@@ -132,6 +132,7 @@ export function ListeningContentEditorPage() {
                   Instructions & Note Layout
                 </Label>
                 <Textarea
+                  id="listening-editor-instructions-textarea"
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
                   placeholder="Type the shared instructions and notes layout here..."
@@ -146,6 +147,7 @@ export function ListeningContentEditorPage() {
                   Audio Transcript
                 </Label>
                 <Textarea
+                  id="listening-editor-transcript-textarea"
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                   placeholder="Type the audio script/transcript for this listening exercise here..."

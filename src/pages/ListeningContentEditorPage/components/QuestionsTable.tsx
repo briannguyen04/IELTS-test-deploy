@@ -33,6 +33,7 @@ export function QuestionsTable({
         </div>
 
         <Button
+          id="questions-table-add-question-button"
           onClick={onAdd}
           className="bg-[#1977f3] hover:bg-[#1567d3]"
           size="sm"
@@ -64,6 +65,7 @@ export function QuestionsTable({
         <div>
           {questions.map((question) => (
             <div
+              id={`questions-table-row-${question.tempId}`}
               key={question.tempId}
               onClick={() => onSelect(question.tempId)}
               className={`grid grid-cols-[80px_140px_1fr_100px] gap-[16px] px-[20px] py-[16px] border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${
@@ -88,6 +90,7 @@ export function QuestionsTable({
 
               <div className="flex items-center justify-center gap-[8px]">
                 <button
+                  id={`questions-table-edit-button-${question.tempId}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelect(question.tempId);
@@ -98,6 +101,7 @@ export function QuestionsTable({
                 </button>
 
                 <button
+                  id={`questions-table-delete-button-${question.tempId}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(question.tempId);
