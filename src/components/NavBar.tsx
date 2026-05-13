@@ -15,10 +15,9 @@ function DownArrow() {
         preserveAspectRatio="none"
         viewBox="0 0 29 24"
       >
-        <g id="Down Arrow">
+        <g>
           <path
             d="M10 10L14.5 14L19 10"
-            id="Vector"
             stroke="var(--stroke-0, white)"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -30,13 +29,15 @@ function DownArrow() {
 }
 
 interface NavItemProps {
+  id?: string;
   label: string;
   hasDropdown?: boolean;
   onClick?: () => void;
-  dropdownItems?: { label: string; onClick: () => void }[];
+  dropdownItems?: { id?: string; label: string; onClick: () => void }[];
 }
 
 export function NavItem({
+  id,
   label,
   hasDropdown = false,
   onClick,
@@ -51,6 +52,7 @@ export function NavItem({
       onMouseLeave={() => hasDropdown && setIsOpen(false)}
     >
       <div
+        id={id}
         className="content-stretch flex gap-[10px] items-center relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity pb-2"
         onClick={onClick}
       >
@@ -65,6 +67,7 @@ export function NavItem({
         <div className="absolute top-full left-0 bg-white rounded-[8px] shadow-lg py-2 min-w-[180px] z-50">
           {dropdownItems.map((item, index) => (
             <button
+              id={item.id}
               key={index}
               onClick={(e) => {
                 e.stopPropagation();
@@ -87,51 +90,87 @@ function NavMenu() {
 
   return (
     <div className="content-stretch flex gap-[32px] items-center justify-center relative shrink-0">
-      <NavItem label="Home" onClick={() => navigate("/")} />
+      <NavItem id="nav-home-link" label="Home" onClick={() => navigate("/")} />
       <NavItem
+        id="nav-listening-menu"
         label="Listening"
         hasDropdown
         dropdownItems={[
           {
+            id: "nav-listening-overview-button",
             label: "Overview",
             onClick: () => navigate("/listening/overview"),
           },
-          { label: "Exercise", onClick: () => navigate("/listening/browse") },
+          {
+            id: "nav-listening-exercise-button",
+            label: "Exercise",
+            onClick: () => navigate("/listening/browse"),
+          },
         ]}
       />
       <NavItem
+        id="nav-reading-menu"
         label="Reading"
         hasDropdown
         dropdownItems={[
-          { label: "Overview", onClick: () => navigate("/reading/overview") },
-          { label: "Exercise", onClick: () => navigate("/reading/browse") },
+          {
+            id: "nav-reading-overview-button",
+            label: "Overview",
+            onClick: () => navigate("/reading/overview"),
+          },
+          {
+            id: "nav-reading-exercise-button",
+            label: "Exercise",
+            onClick: () => navigate("/reading/browse"),
+          },
         ]}
       />
       <NavItem
+        id="nav-writing-menu"
         label="Writing"
         hasDropdown
         dropdownItems={[
-          { label: "Overview", onClick: () => navigate("/writing/overview") },
-          { label: "Exercise", onClick: () => navigate("/writing/browse") },
+          {
+            id: "nav-writing-overview-button",
+            label: "Overview",
+            onClick: () => navigate("/writing/overview"),
+          },
+          {
+            id: "nav-writing-exercise-button",
+            label: "Exercise",
+            onClick: () => navigate("/writing/browse"),
+          },
         ]}
       />
       <NavItem
+        id="nav-speaking-menu"
         label="Speaking"
         hasDropdown
         dropdownItems={[
           {
+            id: "nav-speaking-overview-button",
             label: "Overview",
             onClick: () => navigate("/speaking/overview"),
           },
-          { label: "Exercise", onClick: () => navigate("/speaking/browse") },
+          {
+            id: "nav-speaking-exercise-button",
+            label: "Exercise",
+            onClick: () => navigate("/speaking/browse"),
+          },
         ]}
       />
       {/* <NavItem
+        id="nav-test-menu"
         label="Test"
         hasDropdown
         dropdownItems={[
-          { label: "Mock Test", onClick: () => navigate("/mocktest") },
           {
+            id: "nav-test-mock-test-button",
+            label: "Mock Test",
+            onClick: () => navigate("/mocktest"),
+          },
+          {
+            id: "nav-test-evaluation-test-button",
             label: "Evaluation Test",
             onClick: () => navigate("/evaluation-test"),
           },
@@ -160,26 +199,21 @@ export function Profile({}: ProfileProps) {
   return (
     <div className="relative">
       <div
-        id="nav-profile-avatar"
+        id="nav-profile-avatar-button"
         className="content-stretch flex gap-[10px] items-start relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div
-          className="content-stretch flex gap-[10px] items-start relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <Avatar className="w-[44px] h-[44px] flex-shrink-0">
-            <AvatarImage
-              src={avatarMeta.avatarUrl || undefined}
-              alt="User profile"
-            />
-            <AvatarFallback
-              className={`${avatarMeta.colorClass} text-white font-['Inter'] font-semibold text-[20px]`}
-            >
-              {avatarMeta.initials}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <Avatar className="w-[44px] h-[44px] flex-shrink-0">
+          <AvatarImage
+            src={avatarMeta.avatarUrl || undefined}
+            alt="User profile"
+          />
+          <AvatarFallback
+            className={`${avatarMeta.colorClass} text-white font-['Inter'] font-semibold text-[20px]`}
+          >
+            {avatarMeta.initials}
+          </AvatarFallback>
+        </Avatar>
       </div>
 
       {isOpen && <ProfileDropdown onClose={() => setIsOpen(false)} />}
@@ -196,7 +230,10 @@ interface NavBarLearnerProps {
 
 export function NavBarLearner({ onLogout }: NavBarLearnerProps) {
   return (
-    <div className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50">
+    <div
+      id="navbar-learner"
+      className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50"
+    >
       <IELTSMastermindLogo />
       <NavMenu />
       <Profile />
@@ -208,7 +245,10 @@ export function NavBarGuest() {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50">
+    <div
+      id="navbar-guest"
+      className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50"
+    >
       <IELTSMastermindLogo />
       <NavMenu />
       <div className="flex gap-[12px] items-center">
