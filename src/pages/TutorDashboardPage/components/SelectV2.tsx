@@ -15,6 +15,7 @@ export type SelectOption<TValue extends Key = string> = {
 };
 
 type SelectV2Props<TValue extends Key = string> = {
+  buttonId?: string;
   value: TValue;
   onChange: (value: TValue) => void;
   options: SelectOption<TValue>[];
@@ -33,6 +34,7 @@ function cx(...inputs: ClassValue[]) {
 }
 
 export function SelectV2<TValue extends Key = string>({
+  buttonId = "select-button",
   value,
   onChange,
   options,
@@ -50,6 +52,7 @@ export function SelectV2<TValue extends Key = string>({
       <Listbox value={value} onChange={onChange}>
         <div className="relative">
           <ListboxButton
+            id={buttonId}
             className={cx(
               "border-input bg-input-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 font-['Inter']",
               triggerClassName,
@@ -68,8 +71,9 @@ export function SelectV2<TValue extends Key = string>({
               dropdownClassName,
             )}
           >
-            {options.map((option) => (
+            {options.map((option, index) => (
               <ListboxOption
+                id={`select-option-${index + 1}`}
                 key={option.value}
                 value={option.value}
                 className={cx(
