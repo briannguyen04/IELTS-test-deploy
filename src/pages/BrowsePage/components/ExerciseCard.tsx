@@ -52,7 +52,11 @@ export function ExerciseCard({
   };
 
   return (
-    <div className="cursor-pointer group" onClick={onSelect}>
+    <div
+      id={`browse-exercise-card-${exercise.id}`}
+      className="cursor-pointer group"
+      onClick={onSelect}
+    >
       <div className="relative w-full aspect-[4/3] rounded-[8px] overflow-hidden mb-[10px]">
         <img
           src={buildImageUrl(exercise.image)}
@@ -62,6 +66,7 @@ export function ExerciseCard({
         {/* Bookmark Icon - Only show for logged in users */}
         {isLoggedIn && (
           <button
+            id={`browse-exercise-bookmark-button-${exercise.id}`}
             onClick={handleBookmarkClick}
             className="absolute top-[12px] right-[12px] z-10 bg-white/90 hover:bg-white rounded-full p-[8px] transition-colors"
             type="button"

@@ -474,12 +474,9 @@ export function BrowsePage() {
 
           {/* Exercise Grid */}
           <div className="flex-1">
-            <div
-              id="browse-exercise-grid"
-              className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]"
-            >
+            <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
               {currentExercises.map((exercise, index) => (
-                <div key={exercise.id} id={`browse-exercise-card-${index + 1}`}>
+                <div key={exercise.id}>
                   <ExerciseCard
                     exercise={exercise}
                     isBookmarked={
@@ -494,20 +491,14 @@ export function BrowsePage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-[30px]">
-              <span
-                id="browse-pagination-summary"
-                className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']"
-              >
+              <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']">
                 Showing {sortedExercises.length === 0 ? 0 : startIndex + 1}-
                 {Math.min(endIndex, sortedExercises.length)} of{" "}
                 {sortedExercises.length}
               </span>
 
               <div className="flex items-center gap-[10px]">
-                <span
-                  id="browse-pagination-page-indicator"
-                  className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]"
-                >
+                <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]">
                   Page {paginationPage} of {totalPages}
                 </span>
                 <div className="flex items-center gap-[10px] bg-[#FAFBFD] border border-[#D5D5D5] rounded-[8px] px-[10px] py-[5px]">
@@ -557,7 +548,7 @@ export function BrowsePage() {
 
       {/* Exercise Modal */}
       {selectedExercise && (
-        <div id="browse-exercise-modal">
+        <div>
           <ExerciseModal
             exerciseMetadata={selectedExercise}
             pageType={skill}
