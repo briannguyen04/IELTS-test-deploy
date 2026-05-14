@@ -369,6 +369,8 @@ export default function StudyPlanPage() {
               {!studyPlanEnabled && (
                 <div className="flex items-center gap-[12px]">
                   <button
+                    id={`study-plan-enable-button-${selectedSkill}`}
+                    type="button"
                     onClick={handleEnableStudyPlan}
                     disabled={!canEnableStudyPlan}
                     className={`px-[20px] py-[10px] rounded-[8px] font-['Inter'] text-[14px] font-semibold transition-all ${
@@ -386,6 +388,8 @@ export default function StudyPlanPage() {
               {studyPlanEnabled && (
                 <div className="flex items-center gap-[12px]">
                   <button
+                    id={`study-plan-finalize-button-${activeStudyPlan?.id ?? selectedSkill}`}
+                    type="button"
                     onClick={handleFinalizeStudyPlan}
                     disabled={!canFinalizeStudyPlan}
                     className={`px-[20px] py-[10px] rounded-[8px] font-['Inter'] text-[14px] font-semibold transition-all ${
@@ -409,7 +413,9 @@ export default function StudyPlanPage() {
             <div className="grid grid-cols-4 gap-[16px]">
               {skills.map((skill) => (
                 <button
+                  id={`study-plan-skill-button-${skill}`}
                   key={skill}
+                  type="button"
                   onClick={() => setSelectedSkill(skill)}
                   className={`px-[24px] py-[16px] rounded-[8px] font-['Inter'] text-[16px] font-semibold transition-all ${
                     selectedSkill === skill
@@ -514,6 +520,7 @@ export default function StudyPlanPage() {
                     </h3>
 
                     <button
+                      id={`study-plan-refresh-button-${selectedSkill}`}
                       type="button"
                       onClick={handleRefreshStudyPlanStatus}
                       className="flex items-center gap-[8px] px-[14px] py-[8px] rounded-[8px] font-['Inter'] text-[13px] font-semibold transition-all shrink-0 bg-white text-[#1977f3] border border-blue-200 hover:bg-blue-100 hover:border-[#1977f3]"
