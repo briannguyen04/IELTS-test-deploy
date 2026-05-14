@@ -73,7 +73,7 @@ export function SelectV2<TValue extends Key = string>({
           >
             {options.map((option, index) => (
               <ListboxOption
-                id={`select-option-${index + 1}`}
+                id={`${buttonId}-option-${index + 1}`}
                 key={option.value}
                 value={option.value}
                 className={cx(
