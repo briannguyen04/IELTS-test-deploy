@@ -109,7 +109,9 @@ export default function StudyPlanPage() {
 
   const getHasActiveStudyPlan = useGetHasActiveStudyPlan();
 
-  const [studyPlanEnabled, setStudyPlanEnabled] = useState(false);
+  const [studyPlanEnabledBySkill, setStudyPlanEnabledBySkill] = useState<
+    Partial<Record<BackendSkillType, boolean>>
+  >({});
 
   // =========================
   // Get active study plan data
@@ -122,35 +124,67 @@ export default function StudyPlanPage() {
   const getActiveStudyPlanByUserIdAndSkill =
     useGetActiveStudyPlanByUserIdAndSkill();
 
+  const studyPlanEnabled = studyPlanEnabledBySkill[selectedSkill] ?? false;
+
+  const setStudyPlanEnabledForSkill = (
+    skill: BackendSkillType,
+    enabled: boolean,
+  ) => {
+    setStudyPlanEnabledBySkill((prev) => ({
+      ...prev,
+      [skill]: enabled,
+    }));
+  };
+
+  const clearActiveStudyPlanForSkill = (skill: BackendSkillType) => {
+    setActiveStudyPlanBySkill((prev) => {
+      const next = { ...prev };
+      delete next[skill];
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!userId || !selectedSkill) return;
+
+    let isCurrent = true;
+    const skillToLoad = selectedSkill;
 
     const loadStudyPlan = async () => {
       const hasActivePlanResult = await getHasActiveStudyPlan.get({
         userId,
-        skill: selectedSkill,
+        skill: skillToLoad,
       });
+
+      if (!isCurrent) return;
 
       const hasActivePlan = hasActivePlanResult?.hasActiveStudyPlan ?? false;
 
-      setStudyPlanEnabled(hasActivePlan);
+      setStudyPlanEnabledForSkill(skillToLoad, hasActivePlan);
 
       if (!hasActivePlan) {
+        clearActiveStudyPlanForSkill(skillToLoad);
         return;
       }
 
       const activePlanResult = await getActiveStudyPlanByUserIdAndSkill.get({
         userId,
-        skill: selectedSkill,
+        skill: skillToLoad,
       });
+
+      if (!isCurrent) return;
 
       setActiveStudyPlanBySkill((prev) => ({
         ...prev,
-        [selectedSkill]: activePlanResult,
+        [skillToLoad]: activePlanResult,
       }));
     };
 
     void loadStudyPlan();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [userId, selectedSkill]);
 
   const activeStudyPlan = activeStudyPlanBySkill[selectedSkill];
@@ -191,33 +225,36 @@ export default function StudyPlanPage() {
   const handleEnableStudyPlan = async () => {
     if (!userId || !selectedSkill) return;
 
+    const skillToEnable = selectedSkill;
+
     await postLearnerStudyPlan.post({
       learnerId: userId,
-      skill: selectedSkill,
+      skill: skillToEnable,
     });
 
     const hasActiveStudyPlanResult = await getHasActiveStudyPlan.get({
       userId,
-      skill: selectedSkill,
+      skill: skillToEnable,
     });
 
     const hasActiveStudyPlan =
       hasActiveStudyPlanResult?.hasActiveStudyPlan ?? false;
 
-    setStudyPlanEnabled(hasActiveStudyPlan);
+    setStudyPlanEnabledForSkill(skillToEnable, hasActiveStudyPlan);
 
     if (!hasActiveStudyPlan) {
+      clearActiveStudyPlanForSkill(skillToEnable);
       return;
     }
 
     const result = await getActiveStudyPlanByUserIdAndSkill.get({
       userId,
-      skill: selectedSkill,
+      skill: skillToEnable,
     });
 
     setActiveStudyPlanBySkill((prev) => ({
       ...prev,
-      [selectedSkill]: result,
+      [skillToEnable]: result,
     }));
   };
 
@@ -234,19 +271,36 @@ export default function StudyPlanPage() {
   const handleRefreshStudyPlanStatus = async () => {
     if (!userId || !selectedSkill) return;
 
+    const skillToRefresh = selectedSkill;
+
     await putRefreshStudyPlan.put({
       userId,
-      skill: selectedSkill,
+      skill: skillToRefresh,
     });
+
+    const hasActiveStudyPlanResult = await getHasActiveStudyPlan.get({
+      userId,
+      skill: skillToRefresh,
+    });
+
+    const hasActiveStudyPlan =
+      hasActiveStudyPlanResult?.hasActiveStudyPlan ?? false;
+
+    setStudyPlanEnabledForSkill(skillToRefresh, hasActiveStudyPlan);
+
+    if (!hasActiveStudyPlan) {
+      clearActiveStudyPlanForSkill(skillToRefresh);
+      return;
+    }
 
     const activePlanResult = await getActiveStudyPlanByUserIdAndSkill.get({
       userId,
-      skill: selectedSkill,
+      skill: skillToRefresh,
     });
 
     setActiveStudyPlanBySkill((prev) => ({
       ...prev,
-      [selectedSkill]: activePlanResult,
+      [skillToRefresh]: activePlanResult,
     }));
   };
 
@@ -263,19 +317,36 @@ export default function StudyPlanPage() {
   const handleFinalizeStudyPlan = async () => {
     if (!userId || !selectedSkill || !activeStudyPlan?.id) return;
 
+    const skillToFinalize = selectedSkill;
+
     await putFinalizeLearnerStudyPlanById.put({
       studyPlanId: activeStudyPlan.id,
     });
 
     const hasActiveStudyPlanResult = await getHasActiveStudyPlan.get({
       userId,
-      skill: selectedSkill,
+      skill: skillToFinalize,
     });
 
     const hasActiveStudyPlan =
       hasActiveStudyPlanResult?.hasActiveStudyPlan ?? false;
 
-    setStudyPlanEnabled(hasActiveStudyPlan);
+    setStudyPlanEnabledForSkill(skillToFinalize, hasActiveStudyPlan);
+
+    if (!hasActiveStudyPlan) {
+      clearActiveStudyPlanForSkill(skillToFinalize);
+      return;
+    }
+
+    const activePlanResult = await getActiveStudyPlanByUserIdAndSkill.get({
+      userId,
+      skill: skillToFinalize,
+    });
+
+    setActiveStudyPlanBySkill((prev) => ({
+      ...prev,
+      [skillToFinalize]: activePlanResult,
+    }));
   };
 
   return (
