@@ -59,6 +59,7 @@ function GapInput({
         {n}
       </span>
       <input
+        id={`instruction-gap-input-${n}`}
         className="h-8 min-w-0 flex-1 rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
         value={selectedAnswers[0] ?? ""}
         onFocus={() =>
@@ -329,10 +330,12 @@ function MultipleChoiceRender({
 
           return (
             <label
+              id={`instruction-mcq-label-${startQuestionNumber}-${optionLetter}`}
               key={optionLetter}
               className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded"
             >
               <input
+                id={`instruction-mcq-input-${startQuestionNumber}-${optionLetter}`}
                 type={isSinglePick ? "radio" : "checkbox"}
                 name={isSinglePick ? `q-${startQuestionNumber}` : undefined}
                 checked={isChecked}

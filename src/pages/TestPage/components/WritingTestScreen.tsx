@@ -188,6 +188,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
           </div>
 
           <button
+            id={`writing-test-exit-button-${exerciseId}`}
             onClick={exitModal.openExitModal}
             className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-colors"
           >
@@ -208,6 +209,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
         {/* Right Side - Writing Area */}
         <div className="w-1/2 overflow-y-auto p-8 bg-gray-50">
           <textarea
+            id={`writing-test-answer-textarea-${exerciseId}`}
             value={writingText}
             onChange={(e) => userAnswer.onAnswerChange(1, [e.target.value])}
             placeholder="Type your essay here..."
@@ -231,6 +233,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       <div className="border-t-2 border-gray-300 bg-white px-6 py-4 fixed bottom-0 left-0 right-0">
         <div className="flex items-center justify-end">
           <button
+            id={`writing-test-submit-button-${exerciseId}`}
             onClick={openSubmitModal}
             className="px-8 py-3 bg-[#fcbf65] hover:bg-[#e5ab52] text-black rounded font-['Inter'] font-bold text-[16px] transition-colors"
           >
@@ -252,12 +255,14 @@ export function WritingTestScreen({ exerciseId }: Props) {
             </p>
             <div className="flex gap-4">
               <button
+                id={`writing-test-exit-modal-cancel-button-${exerciseId}`}
                 onClick={() => exitModal.setShowExitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
+                id={`writing-test-exit-modal-confirm-button-${exerciseId}`}
                 onClick={exitModal.confirmExit}
                 className="flex-1 px-6 py-3 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
@@ -283,6 +288,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
+                  id={`writing-test-submit-modal-continue-button-${exerciseId}`}
                   onClick={() => setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                   type="button"
@@ -291,6 +297,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
                 </button>
               )}
               <button
+                id={`writing-test-submit-modal-confirm-button-${exerciseId}`}
                 onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
                 type="button"

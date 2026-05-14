@@ -181,6 +181,7 @@ export function ReadingTestScreen({ exerciseId }: Props) {
           </div>
 
           <button
+            id={`reading-test-exit-button-${exerciseId}`}
             onClick={exitModal.openExitModal}
             className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-colors"
             type="button"
@@ -225,6 +226,7 @@ export function ReadingTestScreen({ exerciseId }: Props) {
 
               return (
                 <button
+                  id={`reading-test-question-nav-button-${index + 1}`}
                   key={index}
                   className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
 ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
@@ -237,6 +239,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
           </div>
 
           <button
+            id={`reading-test-submit-button-${exerciseId}`}
             onClick={openSubmitModal}
             className="px-8 py-3 bg-[#fcbf65] hover:bg-[#e5ab52] text-black rounded font-['Inter'] font-bold text-[16px] transition-colors"
             type="button"
@@ -261,6 +264,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
+                  id={`reading-test-submit-modal-continue-button-${exerciseId}`}
                   onClick={() => setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                   type="button"
@@ -269,6 +273,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
                 </button>
               )}
               <button
+                id={`reading-test-submit-modal-confirm-button-${exerciseId}`}
                 onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
                 type="button"
@@ -293,6 +298,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
             </p>
             <div className="flex gap-4">
               <button
+                id={`reading-test-exit-modal-cancel-button-${exerciseId}`}
                 onClick={() => exitModal.setShowExitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 type="button"
@@ -300,6 +306,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
                 Cancel
               </button>
               <button
+                id={`reading-test-exit-modal-confirm-button-${exerciseId}`}
                 onClick={exitModal.confirmExit}
                 className="flex-1 px-6 py-3 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg font-['Inter'] font-bold transition-colors"
                 type="button"
