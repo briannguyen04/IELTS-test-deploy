@@ -2,7 +2,6 @@ import { CheckCircle } from "lucide-react";
 import {
   useGetTutorUserPracticeSubmissionByTutorIdAndSubmissionId,
   usePutSetTutorStatus,
-  useRefreshStudyPlanAfterSubmission,
 } from "../hooks";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useEffect } from "react";
@@ -104,6 +103,7 @@ export function TutorStatusButtons({
       <div className="flex gap-[12px]">
         {currentTutorStatus === "PENDING" && (
           <button
+            id={`tutor-status-start-review-button-${submissionId}`}
             type="button"
             onClick={handleStartReview}
             className="bg-blue-600 hover:bg-blue-700 text-white px-[16px] py-[10px] rounded-[8px] font-['Inter'] font-semibold text-[14px] transition-colors"
@@ -114,6 +114,7 @@ export function TutorStatusButtons({
 
         {currentTutorStatus === "IN_REVIEW" && (
           <button
+            id={`tutor-status-complete-review-button-${submissionId}`}
             type="button"
             onClick={handleCompleteReview}
             disabled={!canCompleteReview}

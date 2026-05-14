@@ -164,6 +164,7 @@ export function FeedbackSection({ submissionId }: Props) {
                 </span>
               )}
               <Switch
+                id={`feedback-request-tutor-review-switch-${submissionId}`}
                 checked={!!isTutorReviewRequested}
                 onCheckedChange={handleOnSwitchReview}
                 className="data-[state=checked]:bg-[#10b981]"
@@ -176,6 +177,7 @@ export function FeedbackSection({ submissionId }: Props) {
       {/* Tutor Message */}
       <div className="bg-white rounded-[12px] p-[20px] border border-gray-200 mb-[24px]">
         <textarea
+          id={`feedback-message-textarea-${submissionId}`}
           value={tutorMessage.tutorMessage}
           onChange={(e) => tutorMessage.setTutorMessage(e.target.value)}
           placeholder="Write a message..."
@@ -183,6 +185,7 @@ export function FeedbackSection({ submissionId }: Props) {
         />
         <div className="flex justify-end mt-[12px]">
           <button
+            id={`feedback-send-message-button-${submissionId}`}
             onClick={handleOnClickSendFeedbackButton}
             disabled={!tutorMessage.tutorMessage.trim()}
             className="px-[16px] py-[8px] bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-[8px] font-['Inter'] font-semibold text-[14px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-[8px]"

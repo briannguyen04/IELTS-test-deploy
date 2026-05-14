@@ -799,12 +799,14 @@ export function WritingFeedbackAnalysis({
           {canManageThisCard && (
             <div className="flex items-center gap-[8px]">
               <button
+                id={`writing-feedback-edit-item-button-${item.id}`}
                 onClick={() => handleEditTutorItem(item.id)}
                 className="text-gray-400 hover:text-[#1977f3] transition-colors"
               >
                 <Edit className="w-[16px] h-[16px]" />
               </button>
               <button
+                id={`writing-feedback-remove-item-button-${item.id}`}
                 onClick={() => handleRemoveTutorItem(item.id)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
               >
@@ -901,6 +903,7 @@ export function WritingFeedbackAnalysis({
 
             {canManageTutorReview && (
               <Button
+                id={`writing-feedback-save-scores-button-${writingSubmissionId}`}
                 onClick={handleSaveTutorScores}
                 disabled={!isTutorScoresComplete}
                 variant="outline"
@@ -924,6 +927,7 @@ export function WritingFeedbackAnalysis({
 
                 {canManageTutorReview ? (
                   <Input
+                    id={`writing-feedback-score-input-${writingSubmissionId}-${scoreItem.criterion}`}
                     type="text"
                     value={scoreItem.score}
                     onChange={(e) =>
@@ -948,6 +952,7 @@ export function WritingFeedbackAnalysis({
         <div className="grid grid-cols-4 gap-[12px]">
           {getAvailableCriteria(taskType).map((criterion) => (
             <button
+              id={`writing-feedback-criterion-button-${writingSubmissionId}-${criterion}`}
               key={criterion}
               onClick={() => setSelectedCriterion(criterion)}
               className={`px-[16px] py-[12px] rounded-[8px] font-['Inter'] text-[14px] font-medium transition-all ${
@@ -974,6 +979,7 @@ export function WritingFeedbackAnalysis({
 
             {canManageTutorReview && (
               <Button
+                id={`writing-feedback-add-strength-button-${writingSubmissionId}`}
                 onClick={() => handleOpenAddItemModal("STRENGTH")}
                 variant="outline"
                 className="text-[#10b981] border-[#10b981] hover:bg-[#10b981]/10"
@@ -1009,6 +1015,7 @@ export function WritingFeedbackAnalysis({
 
             {canManageTutorReview && (
               <Button
+                id={`writing-feedback-add-weakness-button-${writingSubmissionId}`}
                 onClick={() => handleOpenAddItemModal("WEAKNESS")}
                 variant="outline"
                 className="text-[#f59e0b] border-[#f59e0b] hover:bg-[#f59e0b]/10"
@@ -1045,6 +1052,7 @@ export function WritingFeedbackAnalysis({
                 {addItemType === "STRENGTH" ? "Strength" : "Weakness"}
               </h3>
               <button
+                id={`writing-feedback-item-modal-close-button-${writingSubmissionId}`}
                 onClick={handleCloseItemModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
@@ -1059,6 +1067,7 @@ export function WritingFeedbackAnalysis({
                   Label
                 </label>
                 <SelectV2<WritingFeedbackLabel>
+                  buttonId={`writing-feedback-item-label-select-button-${writingSubmissionId}`}
                   value={newItem.label}
                   onChange={handleChangeNewItemLabel}
                   options={writingFeedbackLabelOptions}
@@ -1076,6 +1085,7 @@ export function WritingFeedbackAnalysis({
                   Description
                 </label>
                 <Textarea
+                  id={`writing-feedback-item-description-textarea-${writingSubmissionId}`}
                   value={newItem.description || ""}
                   onChange={(e) =>
                     handleChangeNewItemDescription(e.target.value)
@@ -1091,6 +1101,7 @@ export function WritingFeedbackAnalysis({
                   Explanation
                 </label>
                 <Textarea
+                  id={`writing-feedback-item-explanation-textarea-${writingSubmissionId}`}
                   value={newItem.explanation || ""}
                   onChange={(e) =>
                     handleChangeNewItemExplanation(e.target.value)
@@ -1107,6 +1118,7 @@ export function WritingFeedbackAnalysis({
                     Evidence (optional)
                   </label>
                   <Button
+                    id={`writing-feedback-item-add-evidence-button-${writingSubmissionId}`}
                     onClick={handleAddEvidenceSentence}
                     variant="outline"
                     size="sm"
@@ -1119,6 +1131,7 @@ export function WritingFeedbackAnalysis({
                   {(newItem.evidenceSentences || []).map((quote, idx) => (
                     <div key={idx} className="flex gap-[8px]">
                       <Input
+                        id={`writing-feedback-item-evidence-input-${writingSubmissionId}-${idx + 1}`}
                         value={quote}
                         onChange={(e) =>
                           handleUpdateEvidenceSentence(idx, e.target.value)
@@ -1128,6 +1141,7 @@ export function WritingFeedbackAnalysis({
                       />
                       {(newItem.evidenceSentences?.length || 0) > 1 && (
                         <Button
+                          id={`writing-feedback-item-remove-evidence-button-${writingSubmissionId}-${idx + 1}`}
                           onClick={() => handleRemoveEvidenceSentence(idx)}
                           variant="outline"
                           size="sm"
@@ -1152,6 +1166,7 @@ export function WritingFeedbackAnalysis({
                       Action Description
                     </label>
                     <Input
+                      id={`writing-feedback-item-recommended-action-description-input-${writingSubmissionId}`}
                       value={newItem.recommendedActionDescription || ""}
                       onChange={(e) =>
                         handleChangeNewItemRecommendedActionDescription(
@@ -1167,6 +1182,7 @@ export function WritingFeedbackAnalysis({
                       Action Explanation
                     </label>
                     <Textarea
+                      id={`writing-feedback-item-recommended-action-explanation-textarea-${writingSubmissionId}`}
                       value={newItem.recommendedActionExplanation || ""}
                       onChange={(e) =>
                         handleChangeNewItemRecommendedActionExplanation(
@@ -1182,10 +1198,19 @@ export function WritingFeedbackAnalysis({
             </div>
 
             <div className="sticky bottom-0 bg-white border-t border-gray-200 p-[24px] flex items-center justify-end gap-[12px]">
-              <Button onClick={handleCloseItemModal} variant="outline">
+              <Button
+                id={`writing-feedback-item-modal-cancel-button-${writingSubmissionId}`}
+                onClick={handleCloseItemModal}
+                variant="outline"
+              >
                 Cancel
               </Button>
               <Button
+                id={
+                  isEditMode
+                    ? `writing-feedback-item-modal-update-button-${writingSubmissionId}`
+                    : `writing-feedback-item-modal-add-button-${writingSubmissionId}`
+                }
                 onClick={handleSubmitItemModal}
                 className="bg-[#1977f3] hover:bg-[#1977f3]/90"
                 disabled={!newItem.label || !newItem.description}
