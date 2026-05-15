@@ -9,12 +9,14 @@ interface ExerciseCardProps {
   exercise: ExerciseMetadata;
   onSelect: () => void;
   isBookmarked?: boolean;
+  onBookmarkChange?: () => void | Promise<void>;
 }
 
 export function ExerciseCard({
   exercise,
   onSelect,
   isBookmarked = false,
+  onBookmarkChange,
 }: ExerciseCardProps) {
   // =========================
   // Auth
@@ -45,10 +47,14 @@ export function ExerciseCard({
   // Bookmark practice content
   // =========================
 
-  const handleBookmarkClick = (e: React.MouseEvent) => {
+  const handleBookmarkClick = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     e.stopPropagation();
-    putUserPracticeContentProgress.put();
+
+    await putUserPracticeContentProgress.put();
     setIsBookmarkedLocal((prev) => !prev);
+    await onBookmarkChange?.();
   };
 
   return (
