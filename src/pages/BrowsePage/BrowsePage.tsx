@@ -564,21 +564,32 @@ export function BrowsePage() {
 
           {/* Exercise Grid */}
           <div className="flex-1">
-            <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
-              {currentExercises.map((exercise, index) => (
-                <div key={exercise.id}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    isBookmarked={
-                      userPracticeContentProgresses[exercise.id]
-                        ?.isBookmarked ?? false
-                    }
-                    onBookmarkChange={refreshUserPracticeContentProgresses}
-                    onSelect={() => setSelectedExercise(exercise)}
-                  />
-                </div>
-              ))}
-            </div>
+            {currentExercises.length === 0 ? (
+              <div className="min-h-[260px] flex flex-col items-center justify-center rounded-[10px] border border-dashed border-[rgba(0,0,0,0.15)] bg-[rgba(119,203,242,0.06)] text-center px-[24px]">
+                <p className="font-['Inter'] font-semibold text-[16px] text-[#202224] mb-[6px]">
+                  No exercises available now
+                </p>
+                <p className="font-['Inter'] text-[13px] text-[rgba(0,0,0,0.47)]">
+                  Try changing your search or filter options.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
+                {currentExercises.map((exercise) => (
+                  <div key={exercise.id}>
+                    <ExerciseCard
+                      exercise={exercise}
+                      isBookmarked={
+                        userPracticeContentProgresses[exercise.id]
+                          ?.isBookmarked ?? false
+                      }
+                      onBookmarkChange={refreshUserPracticeContentProgresses}
+                      onSelect={() => setSelectedExercise(exercise)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-[30px]">
