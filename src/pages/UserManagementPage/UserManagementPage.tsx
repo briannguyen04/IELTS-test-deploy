@@ -113,6 +113,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserData | null>(null);
 
   // =========================
   // Form state (create/edit user)
@@ -228,6 +229,13 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   // =========================
   // Row actions (delete/edit) + create new
   // =========================
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    await handleDelete(deleteTarget.id);
+    setDeleteTarget(null);
+  };
 
   const handleDelete = async (id: string) => {
     try {
@@ -772,7 +780,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
                         id={`user-management-delete-button-${user.id}`}
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => setDeleteTarget(user)}
                         className="font-['Inter']"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -925,6 +933,42 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+            {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-[16px] shadow-xl w-[480px] p-[32px]">
+            <h3 className="font-['Inter'] text-[24px] font-semibold text-gray-900 mb-[12px]">
+              Confirm Delete
+            </h3>
+
+            <p className="font-['Inter'] text-[16px] text-gray-600 mb-[28px] leading-relaxed">
+              Are you sure you want to delete user{" "}
+              <span className="font-semibold text-gray-900">
+                {deleteTarget.name}
+              </span>
+              ?
+            </p>
+
+            <div className="flex justify-end gap-[12px]">
+              <Button
+                variant="ghost"
+                onClick={() => setDeleteTarget(null)}
+                className="font-['Inter'] h-[44px] px-[20px] text-[15px]"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                onClick={handleConfirmDelete}
+                className="font-['Inter'] h-[44px] px-[20px] text-[15px] bg-red-500 hover:bg-red-600 text-white"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <Footer />
     </div>
