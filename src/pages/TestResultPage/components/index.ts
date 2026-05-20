@@ -5,6 +5,5 @@ export { FeedbackSection } from "./FeedbackSection.tsx";
 export { ReviewListening } from "./ReviewListening.tsx";
 export { ReviewReading } from "./ReviewReading.tsx";
 export { TutorStatusDropdown } from "./TutorStatusDropdown.tsx";
-export { WritingOverallScore } from "./WritingOverallScore.tsx";
 export { WritingFeedbackAnalysis } from "./WritingFeedbackAnalysis.tsx";
 export { TutorStatusButtons } from "./TutorStatusButtons.tsx";

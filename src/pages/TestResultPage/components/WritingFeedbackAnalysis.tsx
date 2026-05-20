@@ -6,6 +6,7 @@ import {
   Edit,
   ClipboardList,
   Save,
+  RefreshCw,
 } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
@@ -27,7 +28,6 @@ import {
   usePostCreateWritingCriterionFeedback,
   usePutUpsertTutorBandScore,
   usePutWritingCriterionFeedbackById,
-  useWritingReviewRefreshStore,
 } from "../hooks/index.ts";
 import {
   SelectOption,
@@ -39,6 +39,7 @@ type Props = {
   writingSubmissionId: string;
   taskType: string;
   canEdit?: boolean;
+  onScoreExistChange?: (hasScore: boolean) => void;
 };
 
 export function WritingFeedbackAnalysis({
@@ -46,6 +47,7 @@ export function WritingFeedbackAnalysis({
   writingSubmissionId,
   taskType,
   canEdit = false,
+  onScoreExistChange,
 }: Props) {
   // =========================
   // Auth
@@ -113,20 +115,62 @@ export function WritingFeedbackAnalysis({
     });
   }, [writingSubmissionId]);
 
+  // =========================
+  // Handle refresh feedback analysis
+  // =========================
+
+  const handleRefreshFeedbackAnalysis = async () => {
+    if (submissionId) {
+      await getWritingCriterionFeedbackBySubmissionId.get({
+        submissionId,
+      });
+    }
+
+    if (writingSubmissionId) {
+      await getAllTutorBandScoreByWritingId.get({
+        writingAnswerId: writingSubmissionId,
+      });
+    }
+  };
+
   const allTutorBandScores =
-    getAllTutorBandScoreByWritingId.writingReviewBandScores;
+    getAllTutorBandScoreByWritingId.writingReviewBandScores ?? [];
+
+  // =========================
+  // Check if required writing scores exist
+  // =========================
+
+  const isTask1 = taskType === "TASK_1";
+  const isTask2 = taskType === "TASK_2";
+
+  const isValidScore = (score?: number | null) => {
+    return typeof score === "number" && !Number.isNaN(score) && score > 0;
+  };
+
+  const hasRequiredWritingScore = allTutorBandScores.some((review) => {
+    const taskScore = isTask1
+      ? review.tutorTaskAchievementBand
+      : isTask2
+        ? review.tutorTaskResponseBand
+        : review.tutorTaskAchievementBand;
+
+    return (
+      isValidScore(taskScore) &&
+      isValidScore(review.tutorCoherenceAndCohesionBand) &&
+      isValidScore(review.tutorLexicalResourceBand) &&
+      isValidScore(review.tutorGrammaticalRangeAndAccuracyBand)
+    );
+  });
+
+  useEffect(() => {
+    onScoreExistChange?.(hasRequiredWritingScore);
+  }, [hasRequiredWritingScore, onScoreExistChange]);
 
   // =========================
   // Put upsert tutor band score
   // =========================
 
   const putUpsertTutorBandScore = usePutUpsertTutorBandScore();
-
-  // =========================
-  // Writing review refresh store
-  // =========================
-
-  const { bumpRefreshVersion } = useWritingReviewRefreshStore();
 
   // =========================
   // Get default criterion
@@ -315,8 +359,6 @@ export function WritingFeedbackAnalysis({
     await getAllTutorBandScoreByWritingId.get({
       writingAnswerId: writingSubmissionId,
     });
-
-    bumpRefreshVersion();
   };
 
   // =========================
@@ -884,68 +926,92 @@ export function WritingFeedbackAnalysis({
     <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200 mb-[24px]">
       {/* Header */}
       <div className="mb-[28px]">
-        <div className="flex items-center gap-[12px] mb-[16px]">
-          <ClipboardList className="w-[24px] h-[24px] text-purple-600" />
-          <h2 className="font-['Inter'] font-semibold text-[20px] text-gray-900">
-            Detailed Feedback Analysis
-          </h2>
+        <div className="flex items-center justify-between gap-[16px] mb-[16px]">
+          <div className="flex items-center gap-[12px]">
+            <ClipboardList className="w-[24px] h-[24px] text-purple-600" />
+            <h2 className="font-['Inter'] font-semibold text-[20px] text-gray-900">
+              Detailed Feedback Analysis
+            </h2>
+          </div>
+
+          <Button
+            id={`writing-feedback-refresh-button-${writingSubmissionId}`}
+            type="button"
+            onClick={handleRefreshFeedbackAnalysis}
+            variant="outline"
+            className="text-[#1977f3] border-[#1977f3] hover:bg-[#1977f3]/10 shrink-0"
+          >
+            <RefreshCw className="w-[16px] h-[16px] mr-[6px]" />
+            Refresh
+          </Button>
         </div>
       </div>
 
       {/* Tutor Scores */}
-      {isTutor && (
-        <div className="mb-[24px]">
-          <div className="flex items-center justify-between mb-[12px]">
-            <h3 className="font-['Inter'] font-semibold text-[16px] text-[#1977f3] flex items-center gap-[8px]">
-              <ClipboardList className="w-[18px] h-[18px]" />
-              Tutor Scores
-            </h3>
+      <div className="mb-[24px]">
+        <div className="flex items-center justify-between mb-[12px]">
+          <h3 className="font-['Inter'] font-semibold text-[16px] text-[#1977f3] flex items-center gap-[8px]">
+            <ClipboardList className="w-[18px] h-[18px]" />
+            Tutor Scores
+          </h3>
 
-            {canManageTutorReview && (
-              <Button
-                id={`writing-feedback-save-scores-button-${writingSubmissionId}`}
-                onClick={handleSaveTutorScores}
-                disabled={!isTutorScoresComplete}
-                variant="outline"
-                className="text-[#1977f3] border-[#1977f3] hover:bg-[#1977f3]/10"
-              >
-                <Save className="w-[16px] h-[16px] mr-[6px]" />
-                Save Scores
-              </Button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-            {tutorScores.map((scoreItem) => (
-              <div
-                key={scoreItem.criterion}
-                className="bg-blue-50 border border-blue-200 rounded-[8px] p-[16px] flex flex-col items-center"
-              >
-                <label className="font-['Inter'] text-[14px] font-bold text-gray-700 mb-[8px] block text-center">
-                  {getCriterionLabel(taskType, scoreItem.criterion)}
-                </label>
-
-                {canManageTutorReview ? (
-                  <Input
-                    id={`writing-feedback-score-input-${writingSubmissionId}-${scoreItem.criterion}`}
-                    type="text"
-                    value={scoreItem.score}
-                    onChange={(e) =>
-                      handleScoreChange(scoreItem.criterion, e.target.value)
-                    }
-                    placeholder="e.g., 7.5"
-                    className="font-['Inter'] text-[14px] text-center font-semibold"
-                  />
-                ) : (
-                  <div className="w-full min-h-[40px] px-[12px] py-[8px] rounded-[8px] border border-gray-200 bg-gray-50 font-['Inter'] text-[14px] text-center font-semibold text-gray-700 flex items-center justify-center">
-                    {scoreItem.score || "-"}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          {canManageTutorReview && (
+            <Button
+              id={`writing-feedback-save-scores-button-${writingSubmissionId}`}
+              onClick={handleSaveTutorScores}
+              disabled={!isTutorScoresComplete}
+              variant="outline"
+              className="text-[#1977f3] border-[#1977f3] hover:bg-[#1977f3]/10"
+            >
+              <Save className="w-[16px] h-[16px] mr-[6px]" />
+              Save Scores
+            </Button>
+          )}
         </div>
-      )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-[16px]">
+          <div className="bg-blue-50 border border-blue-200 rounded-[8px] p-[16px] flex flex-col items-center">
+            <label className="font-['Inter'] text-[14px] font-bold text-gray-700 mb-[8px] block text-center">
+              Overall Band Score
+            </label>
+
+            <div
+              id={`writing-feedback-overall-band-score-${writingSubmissionId}`}
+              className="w-full min-h-[40px] px-[12px] py-[8px] rounded-[8px] border border-gray-200 bg-gray-50 font-['Inter'] text-[14px] text-center font-semibold text-gray-700 flex items-center justify-center"
+            >
+              {activeTutorBandScore?.overallTutorBand?.toString() ?? "-"}
+            </div>
+          </div>
+
+          {tutorScores.map((scoreItem) => (
+            <div
+              key={scoreItem.criterion}
+              className="bg-blue-50 border border-blue-200 rounded-[8px] p-[16px] flex flex-col items-center"
+            >
+              <label className="font-['Inter'] text-[14px] font-bold text-gray-700 mb-[8px] block text-center">
+                {getCriterionLabel(taskType, scoreItem.criterion)}
+              </label>
+
+              {canManageTutorReview ? (
+                <Input
+                  id={`writing-feedback-score-input-${writingSubmissionId}-${scoreItem.criterion}`}
+                  type="text"
+                  value={scoreItem.score}
+                  onChange={(e) =>
+                    handleScoreChange(scoreItem.criterion, e.target.value)
+                  }
+                  placeholder="e.g., 7.5"
+                  className="font-['Inter'] text-[14px] text-center font-semibold"
+                />
+              ) : (
+                <div className="w-full min-h-[40px] px-[12px] py-[8px] rounded-[8px] border border-gray-200 bg-gray-50 font-['Inter'] text-[14px] text-center font-semibold text-gray-700 flex items-center justify-center">
+                  {scoreItem.score || "-"}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Criterion Filter */}
       <div className="mb-[20px]">
