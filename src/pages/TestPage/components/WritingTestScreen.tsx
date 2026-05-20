@@ -24,6 +24,8 @@ type Props = {
   exerciseId: string;
 };
 
+const MAX_WRITING_WORDS = 350;
+
 export function WritingTestScreen({ exerciseId }: Props) {
   // =========================
   // Auth information
@@ -55,6 +57,13 @@ export function WritingTestScreen({ exerciseId }: Props) {
   const userAnswer = useUserAnswer({});
 
   const writingText = userAnswer.answers[1]?.[0] ?? "";
+  const writingWordCount = countWords(writingText);
+
+  const handleWritingTextChange = (value: string) => {
+    if (countWords(value) <= MAX_WRITING_WORDS) {
+      userAnswer.onAnswerChange(1, [value]);
+    }
+  };
 
   // =========================
   // Countdown Timer
@@ -211,7 +220,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
           <textarea
             id={`writing-test-answer-textarea-${exerciseId}`}
             value={writingText}
-            onChange={(e) => userAnswer.onAnswerChange(1, [e.target.value])}
+            onChange={(e) => handleWritingTextChange(e.target.value)}
             placeholder="Type your essay here..."
             spellCheck={false}
             className="w-full h-[calc(100vh-340px)] p-4 border border-gray-300 rounded-lg font-['Inter'] text-[16px] resize-none focus:outline-none focus:ring-2 focus:ring-[#1977f3] focus:border-transparent"
@@ -220,10 +229,17 @@ export function WritingTestScreen({ exerciseId }: Props) {
           <div className="mt-4 text-[15px] text-gray-600 font-['Inter']">
             Words Count:{" "}
             <span
-              className="font-semibold text-gray-900" // TODO: Replace with actual count
+              className={`font-semibold ${
+                writingWordCount >= MAX_WRITING_WORDS
+                  ? "text-red-600"
+                  : "text-gray-900"
+              }`}
             >
-              {countWords(writingText)}
+              {writingWordCount} / {MAX_WRITING_WORDS}
             </span>
+            {writingWordCount >= MAX_WRITING_WORDS && (
+              <span className="ml-2 text-red-600">Word limit reached.</span>
+            )}
           </div>
         </div>
       </div>
