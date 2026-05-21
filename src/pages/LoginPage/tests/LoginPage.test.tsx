@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LoginPage } from "../LoginPage";
 import { useAuth } from "../../../contexts/AuthContext";
+import { API_BASE } from "../../../env";
 
 const { mockNavigate, mockLogin } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -29,10 +30,6 @@ vi.mock("../../../components/figma/ImageWithFallback", () => ({
   ImageWithFallback: () => <div data-testid="background-image" />,
 }));
 
-vi.mock("../../../env", () => ({
-  API_BASE: "#",
-}));
-
 const renderPage = () => render(<LoginPage />);
 
 const emailInput = () => screen.getByPlaceholderText("your.email@example.com");
@@ -48,10 +45,24 @@ const fillLoginForm = async (
   if (password !== "") await user.type(passwordInput(), password);
 };
 
+const mockSuccessfulRedirectDelay = () => {
+  const originalSetTimeout = globalThis.setTimeout;
+
+  return vi
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback, delay, ...args) => {
+      if (delay === 2000 && typeof callback === "function") {
+        callback(...args);
+        return 0 as any;
+      }
+
+      return originalSetTimeout(callback as any, delay as any, ...args);
+    });
+};
+
 describe("LoginPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.location.hash = "";
 
     vi.mocked(useAuth).mockReturnValue({
       login: mockLogin,
@@ -126,14 +137,16 @@ describe("LoginPage", () => {
       renderPage();
 
       const input = passwordInput() as HTMLInputElement;
-      const toggleButton = input.parentElement?.querySelector("button");
+      const toggleButton = document.querySelector(
+        "#toggle-password-button",
+      ) as HTMLButtonElement;
 
       expect(input).toHaveAttribute("type", "password");
 
-      await user.click(toggleButton as HTMLElement);
+      await user.click(toggleButton);
       expect(input).toHaveAttribute("type", "text");
 
-      await user.click(toggleButton as HTMLElement);
+      await user.click(toggleButton);
       expect(input).toHaveAttribute("type", "password");
     });
   });
@@ -144,13 +157,46 @@ describe("LoginPage", () => {
       ["Tutor", "/tutor/dashboard"],
       ["student", "/"],
       ["unknown", "/"],
-    ])("navigates role %s to %s", async (role, expectedPath) => {
-      const user = userEvent.setup();
+    ])(
+      "shows success message and navigates role %s to %s after redirect delay",
+      async (role, expectedPath) => {
+        const user = userEvent.setup();
+        const setTimeoutSpy = mockSuccessfulRedirectDelay();
 
-      mockLogin.mockResolvedValue({ role });
+        mockLogin.mockResolvedValue({ role });
+
+        renderPage();
+        await fillLoginForm(user);
+        await user.click(loginButton());
+
+        await waitFor(() => {
+          expect(mockLogin).toHaveBeenCalledWith("student@gmail.com", "123456");
+        });
+
+        expect(
+          await screen.findByText("Login successful! Redirecting..."),
+        ).toBeInTheDocument();
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(expectedPath);
+        });
+
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+
+        setTimeoutSpy.mockRestore();
+      },
+    );
+
+    test("trims email before logging in", async () => {
+      const user = userEvent.setup();
+      const setTimeoutSpy = mockSuccessfulRedirectDelay();
+
+      mockLogin.mockResolvedValue({
+        role: "student",
+      });
 
       renderPage();
-      await fillLoginForm(user);
+      await fillLoginForm(user, "  student@gmail.com  ", "123456");
       await user.click(loginButton());
 
       await waitFor(() => {
@@ -158,8 +204,10 @@ describe("LoginPage", () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(expectedPath);
+        expect(mockNavigate).toHaveBeenCalledWith("/");
       });
+
+      setTimeoutSpy.mockRestore();
     });
 
     test("shows loading state while login request is pending", async () => {
@@ -181,11 +229,21 @@ describe("LoginPage", () => {
         await screen.findByRole("button", { name: /logging in/i }),
       ).toBeDisabled();
 
-      resolveLogin({ role: "student" });
+      const setTimeoutSpy = mockSuccessfulRedirectDelay();
+
+      resolveLogin({
+        role: "student",
+      });
+
+      expect(
+        await screen.findByText("Login successful! Redirecting..."),
+      ).toBeInTheDocument();
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith("/");
       });
+
+      setTimeoutSpy.mockRestore();
     });
   });
 
@@ -245,18 +303,33 @@ describe("LoginPage", () => {
 
   describe("social login", () => {
     test.each([
-      ["Google", /google/i, "#/oauth2/authorization/google"],
-      ["Facebook", /facebook/i, "#/oauth2/authorization/facebook"],
+      ["Google", /google/i, `${API_BASE}/oauth2/authorization/google`],
+      ["Facebook", /facebook/i, `${API_BASE}/oauth2/authorization/facebook`],
     ])(
       "redirects to %s OAuth endpoint",
-      async (_, buttonName, expectedHash) => {
+      async (_, buttonName, expectedHref) => {
         const user = userEvent.setup();
+        const originalLocation = window.location;
 
-        renderPage();
+        Object.defineProperty(window, "location", {
+          configurable: true,
+          value: {
+            href: "",
+          },
+        });
 
-        await user.click(screen.getByRole("button", { name: buttonName }));
+        try {
+          renderPage();
 
-        expect(window.location.hash).toBe(expectedHash);
+          await user.click(screen.getByRole("button", { name: buttonName }));
+
+          expect(window.location.href).toBe(expectedHref);
+        } finally {
+          Object.defineProperty(window, "location", {
+            configurable: true,
+            value: originalLocation,
+          });
+        }
       },
     );
   });

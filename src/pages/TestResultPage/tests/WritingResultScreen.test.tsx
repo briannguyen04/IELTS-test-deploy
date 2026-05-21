@@ -94,20 +94,9 @@ vi.mock("../components/index.ts", () => ({
       <button onClick={() => onTutorStatusChange("IN_REVIEW")}>
         Mark In Review
       </button>
-      <button onClick={() => onTutorStatusChange("APPROVED")}>
-        Mark Approved
+      <button onClick={() => onTutorStatusChange("COMPLETED")}>
+        Mark Completed
       </button>
-    </div>
-  ),
-
-  WritingOverallScore: ({
-    writingSubmissionId,
-    taskType,
-    onScoreExistChange,
-  }: any) => (
-    <div data-testid="writing-overall-score">
-      Writing Overall Score - {writingSubmissionId} - {taskType}
-      <button onClick={() => onScoreExistChange(true)}>Set Score Exists</button>
     </div>
   ),
 
@@ -116,10 +105,12 @@ vi.mock("../components/index.ts", () => ({
     writingSubmissionId,
     taskType,
     canEdit,
+    onScoreExistChange,
   }: any) => (
     <div data-testid="writing-feedback-analysis">
       Writing Feedback Analysis - {submissionId} - {writingSubmissionId} -{" "}
       {taskType} - canEdit: {String(canEdit)}
+      <button onClick={() => onScoreExistChange(true)}>Set Score Exists</button>
     </div>
   ),
 }));
@@ -289,10 +280,6 @@ describe("WritingResultScreen", () => {
         screen.getByText("This is my submitted essay answer."),
       ).toBeInTheDocument();
 
-      expect(screen.getByTestId("writing-overall-score")).toHaveTextContent(
-        "Writing Overall Score - writing-answer-123 - TASK_2",
-      );
-
       expect(screen.getByTestId("writing-feedback-analysis")).toHaveTextContent(
         "Writing Feedback Analysis - submission-123 - writing-answer-123 - TASK_2 - canEdit: false",
       );
@@ -323,10 +310,6 @@ describe("WritingResultScreen", () => {
       renderPage();
 
       expect(screen.getByText("No answer provided")).toBeInTheDocument();
-
-      expect(screen.getByTestId("writing-overall-score")).toHaveTextContent(
-        /Writing Overall Score -\s*-\s*TASK_2/,
-      );
 
       expect(screen.getByTestId("writing-feedback-analysis")).toHaveTextContent(
         /Writing Feedback Analysis - submission-123 -\s*-\s*TASK_2/,
@@ -417,10 +400,6 @@ describe("WritingResultScreen", () => {
       );
 
       expect(
-        screen.queryByTestId("writing-overall-score"),
-      ).not.toBeInTheDocument();
-
-      expect(
         screen.queryByTestId("writing-feedback-analysis"),
       ).not.toBeInTheDocument();
 
@@ -435,10 +414,6 @@ describe("WritingResultScreen", () => {
       renderPage();
 
       await user.click(screen.getByRole("button", { name: /mark pending/i }));
-
-      expect(
-        screen.queryByTestId("writing-overall-score"),
-      ).not.toBeInTheDocument();
 
       expect(
         screen.queryByTestId("writing-feedback-analysis"),
@@ -457,7 +432,9 @@ describe("WritingResultScreen", () => {
       await user.click(screen.getByRole("button", { name: /mark in review/i }));
 
       await waitFor(() => {
-        expect(screen.getByTestId("writing-overall-score")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("writing-feedback-analysis"),
+        ).toBeInTheDocument();
       });
 
       expect(screen.getByTestId("writing-feedback-analysis")).toHaveTextContent(
@@ -467,17 +444,19 @@ describe("WritingResultScreen", () => {
       expect(screen.getByTestId("feedback-section")).toBeInTheDocument();
     });
 
-    test("shows tutor reviewed content as read-only when tutor status is approved", async () => {
+    test("shows tutor reviewed content as read-only when tutor status is completed", async () => {
       const user = userEvent.setup();
 
       mockTutorUser();
 
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: /mark approved/i }));
+      await user.click(screen.getByRole("button", { name: /mark completed/i }));
 
       await waitFor(() => {
-        expect(screen.getByTestId("writing-overall-score")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("writing-feedback-analysis"),
+        ).toBeInTheDocument();
       });
 
       expect(screen.getByTestId("writing-feedback-analysis")).toHaveTextContent(

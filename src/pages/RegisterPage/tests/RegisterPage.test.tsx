@@ -72,6 +72,21 @@ const fillRegisterForm = async (
   }
 };
 
+const mockSuccessfulRedirectDelay = () => {
+  const originalSetTimeout = globalThis.setTimeout;
+
+  return vi
+    .spyOn(globalThis, "setTimeout")
+    .mockImplementation((callback, delay, ...args) => {
+      if (delay === 2000 && typeof callback === "function") {
+        callback(...args);
+        return 0 as any;
+      }
+
+      return originalSetTimeout(callback as any, delay as any, ...args);
+    });
+};
+
 describe("RegisterPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -216,8 +231,9 @@ describe("RegisterPage", () => {
   });
 
   describe("successful registration", () => {
-    test("calls register with submitted values and navigates to homepage", async () => {
+    test("calls register with submitted values, shows success message, and navigates to login page", async () => {
       const user = userEvent.setup();
+      const setTimeoutSpy = mockSuccessfulRedirectDelay();
 
       mockRegister.mockResolvedValue({
         success: true,
@@ -236,13 +252,24 @@ describe("RegisterPage", () => {
         );
       });
 
+      expect(
+        await screen.findByText(
+          "Registration successful! Redirecting to login page...",
+        ),
+      ).toBeInTheDocument();
+
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/");
+        expect(mockNavigate).toHaveBeenCalledWith("/login");
       });
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+
+      setTimeoutSpy.mockRestore();
     });
 
     test("trims first name, last name, and email before registering", async () => {
       const user = userEvent.setup();
+      const setTimeoutSpy = mockSuccessfulRedirectDelay();
 
       mockRegister.mockResolvedValue({
         success: true,
@@ -264,6 +291,12 @@ describe("RegisterPage", () => {
           "123456",
         );
       });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/login");
+      });
+
+      setTimeoutSpy.mockRestore();
     });
 
     test("shows loading state while registration request is pending", async () => {
@@ -285,13 +318,17 @@ describe("RegisterPage", () => {
         await screen.findByRole("button", { name: /registering/i }),
       ).toBeDisabled();
 
+      const setTimeoutSpy = mockSuccessfulRedirectDelay();
+
       resolveRegister({
         success: true,
       });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/");
+        expect(mockNavigate).toHaveBeenCalledWith("/login");
       });
+
+      setTimeoutSpy.mockRestore();
     });
   });
 

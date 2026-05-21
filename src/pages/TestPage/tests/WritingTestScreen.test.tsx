@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { WritingTestScreen } from "../components/WritingTestScreen";
@@ -264,7 +264,7 @@ describe("WritingTestScreen", () => {
       expect(essayInput()).toHaveValue("This is my essay answer");
 
       expect(screen.getByText(/words count/i)).toBeInTheDocument();
-      expect(screen.getByText("5")).toBeInTheDocument();
+      expect(screen.getByText("5 / 350")).toBeInTheDocument();
 
       expect(
         screen.getByRole("button", { name: /exit test/i }),
@@ -279,20 +279,56 @@ describe("WritingTestScreen", () => {
       renderPage();
 
       expect(essayInput()).toHaveValue("");
-      expect(screen.getByText("0")).toBeInTheDocument();
+      expect(screen.getByText("0 / 350")).toBeInTheDocument();
     });
   });
 
   describe("answer behavior", () => {
-    test("calls onAnswerChange when user types in textarea", async () => {
-      const user = userEvent.setup();
+    test("calls onAnswerChange when textarea value is within the word limit", () => {
+      renderPage();
+
+      fireEvent.change(essayInput(), {
+        target: {
+          value: "This is an updated essay answer",
+        },
+      });
+
+      expect(mockOnAnswerChange).toHaveBeenCalledWith(1, [
+        "This is an updated essay answer",
+      ]);
+    });
+
+    test("does not call onAnswerChange when textarea value exceeds the word limit", () => {
+      const overLimitEssay = Array.from(
+        { length: 351 },
+        (_, index) => `word${index + 1}`,
+      ).join(" ");
 
       renderPage();
 
-      await user.type(essayInput(), " more text");
+      fireEvent.change(essayInput(), {
+        target: {
+          value: overLimitEssay,
+        },
+      });
 
-      expect(mockOnAnswerChange).toHaveBeenCalled();
-      expect(mockOnAnswerChange).toHaveBeenCalledWith(1, expect.any(Array));
+      expect(mockOnAnswerChange).not.toHaveBeenCalled();
+    });
+
+    test("renders word limit reached message when essay has maximum allowed words", () => {
+      const maxLimitEssay = Array.from(
+        { length: 350 },
+        (_, index) => `word${index + 1}`,
+      ).join(" ");
+
+      mockState.answers = {
+        1: [maxLimitEssay],
+      };
+
+      renderPage();
+
+      expect(screen.getByText("350 / 350")).toBeInTheDocument();
+      expect(screen.getByText(/word limit reached/i)).toBeInTheDocument();
     });
   });
 
