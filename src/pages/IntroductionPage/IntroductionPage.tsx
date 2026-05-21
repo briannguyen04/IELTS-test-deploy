@@ -66,6 +66,7 @@ export function IntroductionPage() {
 
         <div className="flex justify-center">
           <button
+            id={`introduction-start-test-button-${exerciseId}`}
             type="button"
             onClick={() => navigate(testPath)}
             className="bg-[#dc3545] hover:bg-[#c82333] text-white px-12 py-3 rounded-lg font-semibold text-[18px] transition-colors"

@@ -27,11 +27,7 @@ import { InstructionRendererSimplified } from "./InstructionRendererSimplified.t
 import { FeedbackSection } from "./FeedbackSection.tsx";
 import { Badge } from "../../../components/ui/badge";
 import { NavBarUnified } from "../../../components/NavBarUnified.tsx";
-import {
-  TutorStatusButtons,
-  WritingFeedbackAnalysis,
-  WritingOverallScore,
-} from "./index.ts";
+import { TutorStatusButtons, WritingFeedbackAnalysis } from "./index.ts";
 import { TutorStatus } from "../types.ts";
 
 type Props = {
@@ -291,19 +287,13 @@ export function WritingResultScreen({ submissionId }: Props) {
 
           {showTutorReviewedContent && (
             <>
-              {/* Writing Overall Score */}
-              <WritingOverallScore
-                writingSubmissionId={writingSubmissionId}
-                taskType={taskType}
-                onScoreExistChange={setHasWritingScore}
-              />
-
               {/* Writing Feedback Analysis */}
               <WritingFeedbackAnalysis
                 submissionId={submissionId}
                 writingSubmissionId={writingSubmissionId}
                 taskType={taskType}
                 canEdit={canEditTutorReviewedContent}
+                onScoreExistChange={setHasWritingScore}
               />
             </>
           )}

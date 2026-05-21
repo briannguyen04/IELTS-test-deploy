@@ -49,6 +49,7 @@ export function RegisterPage() {
   // =========================
 
   const [generalError, setGeneralError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ export function RegisterPage() {
   const handleRegister = async (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     setGeneralError("");
+    setSuccessMessage("");
 
     const formData = e?.currentTarget ? new FormData(e.currentTarget) : null;
 
@@ -125,7 +127,13 @@ export function RegisterPage() {
         submittedPassword,
       );
 
-      navigate("/");
+      setSuccessMessage(
+        "Registration successful! Redirecting to login page...",
+      );
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err: any) {
       console.log("REGISTER ERR:", err);
 
@@ -313,13 +321,23 @@ export function RegisterPage() {
                 </div>
               </div>
 
-              {/* GENERAL ERROR (old logic) */}
+              {/* GENERAL ERROR */}
               {generalError && (
                 <p
                   id="register-error-message"
                   className="text-red-500 text-center text-[20px] mb-[20px]"
                 >
                   {generalError}
+                </p>
+              )}
+
+              {/* SUCCESS MESSAGE */}
+              {successMessage && (
+                <p
+                  id="register-success-message"
+                  className="text-green-600 text-center text-[20px] mb-[20px]"
+                >
+                  {successMessage}
                 </p>
               )}
 

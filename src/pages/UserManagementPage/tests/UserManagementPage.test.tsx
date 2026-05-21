@@ -91,8 +91,9 @@ vi.mock("../../../components/ui/select", () => ({
 }));
 
 vi.mock("../../TutorDashboardPage/components/SelectV2", () => ({
-  SelectV2: ({ value, onChange, options, placeholder }: any) => (
+  SelectV2: ({ buttonId, value, onChange, options, placeholder }: any) => (
     <select
+      id={buttonId}
       aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
@@ -218,6 +219,21 @@ const openEditUserDialog = async () => {
   await waitForUsers();
 
   await user.click(screen.getAllByRole("button", { name: /pencil/i })[0]);
+
+  return user;
+};
+
+const openDeleteConfirmation = async () => {
+  const user = userEvent.setup();
+
+  renderPage();
+  await waitForUsers();
+
+  await user.click(screen.getAllByRole("button", { name: /trash2/i })[0]);
+
+  await waitFor(() => {
+    expect(screen.getByText("Confirm Delete")).toBeInTheDocument();
+  });
 
   return user;
 };
@@ -516,10 +532,12 @@ describe("UserManagementPage", () => {
         within(dialog).getByDisplayValue("john@example.com"),
       ).toBeInTheDocument();
 
-      const dialogSelects = within(dialog).getAllByLabelText("select");
-
-      expect(dialogSelects[0]).toHaveValue("Learner");
-      expect(dialogSelects[1]).toHaveValue("Active");
+      expect(within(dialog).getByLabelText("Select role")).toHaveValue(
+        "Learner",
+      );
+      expect(within(dialog).getByLabelText("Select status")).toHaveValue(
+        "Active",
+      );
 
       expect(
         within(dialog).getByText("Leave blank to keep the current password."),
@@ -541,8 +559,10 @@ describe("UserManagementPage", () => {
       await user.clear(firstNameInput);
       await user.type(firstNameInput, "Updated");
 
-      const selects = within(dialog).getAllByLabelText("select");
-      await user.selectOptions(selects[1], "Inactive");
+      await user.selectOptions(
+        within(dialog).getByLabelText("Select status"),
+        "Inactive",
+      );
 
       await user.click(within(dialog).getByRole("button", { name: /update/i }));
 
@@ -632,7 +652,29 @@ describe("UserManagementPage", () => {
   });
 
   describe("delete user", () => {
-    test("deletes user and removes it from the table", async () => {
+    test("opens delete confirmation and cancels without deleting", async () => {
+      const fetchMock = mockFetch(okJson(mockUsersResponse));
+
+      const user = await openDeleteConfirmation();
+
+      expect(
+        screen.getByText(/Are you sure you want to delete user/i),
+      ).toBeInTheDocument();
+
+      // The name appears once in the table and once in the confirmation modal.
+      expect(screen.getAllByText("John Learner")).toHaveLength(2);
+
+      await user.click(screen.getByRole("button", { name: /^cancel$/i }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm Delete")).not.toBeInTheDocument();
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("john@example.com")).toBeInTheDocument();
+    });
+
+    test("deletes user after confirmation and removes it from the table", async () => {
       const fetchMock = mockFetch(
         okJson(mockUsersResponse),
         okJson({
@@ -640,12 +682,9 @@ describe("UserManagementPage", () => {
         }),
       );
 
-      const user = userEvent.setup();
+      const user = await openDeleteConfirmation();
 
-      renderPage();
-      await waitForUsers();
-
-      await user.click(screen.getAllByRole("button", { name: /trash2/i })[0]);
+      await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(
@@ -661,26 +700,31 @@ describe("UserManagementPage", () => {
       });
 
       await waitFor(() => {
+        expect(screen.queryByText("Confirm Delete")).not.toBeInTheDocument();
+      });
+
+      await waitFor(() => {
         expect(screen.queryByText("John Learner")).not.toBeInTheDocument();
       });
     });
 
-    test("shows alert when delete fails", async () => {
+    test("shows alert when confirmed delete fails", async () => {
       mockFetch(okJson(mockUsersResponse), failJson("Cannot delete user"));
 
-      const user = userEvent.setup();
+      const user = await openDeleteConfirmation();
 
-      renderPage();
-      await waitForUsers();
-
-      await user.click(screen.getAllByRole("button", { name: /trash2/i })[0]);
+      await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
         expect(globalThis.alert).toHaveBeenCalledWith("Failed to delete user");
       });
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm Delete")).not.toBeInTheDocument();
+      });
     });
 
-    test("shows alert when delete throws an error", async () => {
+    test("shows alert when confirmed delete throws an error", async () => {
       const fetchMock = vi
         .fn()
         .mockResolvedValueOnce(okJson(mockUsersResponse))
@@ -688,15 +732,16 @@ describe("UserManagementPage", () => {
 
       globalThis.fetch = fetchMock as any;
 
-      const user = userEvent.setup();
+      const user = await openDeleteConfirmation();
 
-      renderPage();
-      await waitForUsers();
-
-      await user.click(screen.getAllByRole("button", { name: /trash2/i })[0]);
+      await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
         expect(globalThis.alert).toHaveBeenCalledWith("Failed to delete user");
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm Delete")).not.toBeInTheDocument();
       });
     });
   });
@@ -739,7 +784,7 @@ describe("UserManagementPage", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    test("handles unauthorized delete by logging out", async () => {
+    test("handles unauthorized confirmed delete by logging out", async () => {
       mockFetch(okJson(mockUsersResponse), {
         ok: false,
         status: 401,
@@ -747,12 +792,9 @@ describe("UserManagementPage", () => {
         text: async () => "",
       });
 
-      const user = userEvent.setup();
+      const user = await openDeleteConfirmation();
 
-      renderPage();
-      await waitForUsers();
-
-      await user.click(screen.getAllByRole("button", { name: /trash2/i })[0]);
+      await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalled();

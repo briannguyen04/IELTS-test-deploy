@@ -34,6 +34,7 @@ export function LoginPage() {
   // =========================
 
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export function LoginPage() {
   const handleLogin = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     setError("");
+    setSuccessMessage("");
 
     const formData = e?.currentTarget ? new FormData(e.currentTarget) : null;
 
@@ -80,15 +82,22 @@ export function LoginPage() {
 
       const role = String(loggedInUser.role).toLowerCase();
 
+      let redirectPath = "/";
+
       if (role === "administrator") {
-        navigate("/content-management");
+        redirectPath = "/content-management";
       } else if (role === "tutor") {
-        navigate("/tutor/dashboard");
-      } else {
-        navigate("/");
+        redirectPath = "/tutor/dashboard";
       }
+
+      setSuccessMessage("Login successful! Redirecting...");
+
+      setTimeout(() => {
+        navigate(redirectPath);
+      }, 2000);
     } catch (err: any) {
       console.log("LOGIN ERR:", err);
+      setLoading(false);
 
       if (err?.error) {
         setError(String(err.error));
@@ -116,8 +125,6 @@ export function LoginPage() {
       }
 
       setError("Invalid email or password");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -228,8 +235,21 @@ export function LoginPage() {
 
               {/* Error message */}
               {error && (
-                <p className="text-red-500 text-center text-[20px] mb-[20px]">
+                <p
+                  id="login-error-message"
+                  className="text-red-500 text-center text-[20px] mb-[20px]"
+                >
                   {error}
+                </p>
+              )}
+
+              {/* Success message */}
+              {successMessage && (
+                <p
+                  id="login-success-message"
+                  className="text-green-600 text-center text-[20px] mb-[20px]"
+                >
+                  {successMessage}
                 </p>
               )}
 

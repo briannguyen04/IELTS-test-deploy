@@ -67,6 +67,8 @@ export function ReviewListening({ exerciseId }: Props) {
 
             <div className="flex items-center gap-4">
               <button
+                id={`review-listening-audio-play-button-${exerciseId}`}
+                type="button"
                 onClick={audioPlayer.togglePlay}
                 className="w-[44px] h-[44px] rounded-full bg-[#1977f3] hover:bg-[#1567d3] flex items-center justify-center transition-colors flex-shrink-0"
               >
@@ -79,6 +81,7 @@ export function ReviewListening({ exerciseId }: Props) {
 
               {/* Progress Bar */}
               <div
+                id={`review-listening-audio-progress-bar-${exerciseId}`}
                 className="flex-1 h-2 bg-gray-200 rounded-full cursor-pointer"
                 onClick={audioPlayer.handleSeek}
                 role="progressbar"

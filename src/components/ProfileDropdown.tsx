@@ -64,7 +64,11 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        id="profile-dropdown-backdrop"
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+      />
 
       {/* Dropdown */}
       <div className="absolute right-0 top-[60px] bg-white rounded-[8px] border border-[rgba(0,0,0,0.1)] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.1)] p-[12px] w-[280px] z-50">
@@ -93,6 +97,7 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
         <div className="space-y-[2px]">
           {(isLearner || isAdministrator || isTutor) && (
             <button
+              id="profile-dropdown-my-profile-button"
               onClick={handleMyProfile}
               className="w-full flex items-center gap-[10px] p-[10px] rounded-[6px] hover:bg-gray-100 transition-colors"
             >
@@ -105,6 +110,7 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
 
           {isLearner && (
             <button
+              id="profile-dropdown-study-plan-button"
               onClick={handleStudyPlan}
               className="w-full flex items-center gap-[10px] p-[10px] rounded-[6px] hover:bg-gray-100 transition-colors"
             >
@@ -117,6 +123,7 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
 
           {(isLearner || isAdministrator || isTutor) && (
             <button
+              id="profile-dropdown-settings-button"
               onClick={handleSettings}
               className="w-full flex items-center gap-[10px] p-[10px] rounded-[6px] hover:bg-gray-100 transition-colors"
             >

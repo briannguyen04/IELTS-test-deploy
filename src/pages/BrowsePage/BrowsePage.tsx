@@ -130,13 +130,64 @@ export function BrowsePage() {
   const sortedExercises = sort.derived.sortedExercises;
 
   // =========================
+  // Bookmark filter
+  // =========================
+
+  const [bookmarkFilter, setBookmarkFilter] = useState<
+    "all" | "bookmarked" | "unbookmarked"
+  >("all");
+
+  useEffect(() => {
+    if (!isLoggedIn && bookmarkFilter !== "all") {
+      setBookmarkFilter("all");
+    }
+  }, [isLoggedIn, bookmarkFilter]);
+
+  // =========================
+  // Get user practice content progresses to determine exercise status for each exercise card
+  // =========================
+
+  const userId = user?.id ?? "";
+
+  const getUserPracticeContentProgresses =
+    useGetUserPracticeContentProgresses(userId);
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserPracticeContentProgresses.get();
+  }, [userId, getUserPracticeContentProgresses.get]);
+
+  const userPracticeContentProgresses =
+    mapUserPracticeContentProgressesByPracticeContentId(
+      getUserPracticeContentProgresses.progresses,
+    );
+
+  const refreshUserPracticeContentProgresses = async (): Promise<void> => {
+    if (!userId) return;
+
+    await getUserPracticeContentProgresses.get();
+  };
+
+  const bookmarkFilteredExercises =
+    !isLoggedIn || bookmarkFilter === "all"
+      ? sortedExercises
+      : sortedExercises.filter((exercise) => {
+          const exerciseIsBookmarked =
+            userPracticeContentProgresses[exercise.id]?.isBookmarked ?? false;
+
+          return bookmarkFilter === "bookmarked"
+            ? exerciseIsBookmarked
+            : !exerciseIsBookmarked;
+        });
+
+  // =========================
   // Paginate exercises
   // =========================
 
   const itemsPerPage = 12;
 
   const pagination = useExercisePagination({
-    exercises: sort.derived.sortedExercises,
+    exercises: bookmarkFilteredExercises,
     itemsPerPage,
   });
 
@@ -157,25 +208,6 @@ export function BrowsePage() {
 
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseMetadata | null>(null);
-
-  // =========================
-  // Get user practice content progresses to determine exercise status for each exercise card
-  // =========================
-
-  const userId = user?.id ?? "";
-
-  const getUserPracticeContentProgresses =
-    useGetUserPracticeContentProgresses(userId);
-
-  useEffect(() => {
-    if (!userId) return;
-    getUserPracticeContentProgresses.get();
-  }, [userId, getUserPracticeContentProgresses.get]);
-
-  const userPracticeContentProgresses =
-    mapUserPracticeContentProgressesByPracticeContentId(
-      getUserPracticeContentProgresses.progresses,
-    );
 
   return (
     <div className="bg-white min-h-screen">
@@ -334,6 +366,64 @@ export function BrowsePage() {
         <div className="flex gap-[30px]">
           {/* Sidebar */}
           <div className="w-[158px] bg-[rgba(119,203,242,0.12)] border border-[rgba(0,0,0,0.11)] rounded-[10px] p-[18px] self-start">
+            {isLoggedIn && (
+              <>
+                <div className="mb-[20px]">
+                  <h3 className="font-['Inter'] font-bold text-[13px] mb-[12px]">
+                    Bookmark
+                  </h3>
+
+                  <button
+                    id="browse-bookmark-filter-button-all"
+                    type="button"
+                    onClick={() => {
+                      setBookmarkFilter("all");
+                      handleFilterChange();
+                    }}
+                    className={`w-full px-[12px] py-[4px] rounded-[4px] border border-black text-[11px] text-left mb-[8px] ${
+                      bookmarkFilter === "all" ? "bg-[#fcbf65]" : "bg-white"
+                    }`}
+                  >
+                    All
+                  </button>
+
+                  <button
+                    id="browse-bookmark-filter-button-bookmarked"
+                    type="button"
+                    onClick={() => {
+                      setBookmarkFilter("bookmarked");
+                      handleFilterChange();
+                    }}
+                    className={`w-full px-[12px] py-[4px] rounded-[4px] border border-black text-[11px] text-left mb-[8px] ${
+                      bookmarkFilter === "bookmarked"
+                        ? "bg-[#fcbf65]"
+                        : "bg-white"
+                    }`}
+                  >
+                    Bookmarked
+                  </button>
+
+                  <button
+                    id="browse-bookmark-filter-button-unbookmarked"
+                    type="button"
+                    onClick={() => {
+                      setBookmarkFilter("unbookmarked");
+                      handleFilterChange();
+                    }}
+                    className={`w-full px-[12px] py-[4px] rounded-[4px] border border-black text-[11px] text-left ${
+                      bookmarkFilter === "unbookmarked"
+                        ? "bg-[#fcbf65]"
+                        : "bg-white"
+                    }`}
+                  >
+                    Unbookmarked
+                  </button>
+                </div>
+
+                <div className="border-t border-black mb-[20px]" />
+              </>
+            )}
+
             {/* Status
             <div className="mb-[20px]">
               <h3 className="font-['Inter'] font-bold text-[13px] mb-[12px]">
@@ -474,40 +564,44 @@ export function BrowsePage() {
 
           {/* Exercise Grid */}
           <div className="flex-1">
-            <div
-              id="browse-exercise-grid"
-              className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]"
-            >
-              {currentExercises.map((exercise, index) => (
-                <div key={exercise.id} id={`browse-exercise-card-${index + 1}`}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    isBookmarked={
-                      userPracticeContentProgresses[exercise.id]
-                        ?.isBookmarked ?? false
-                    }
-                    onSelect={() => setSelectedExercise(exercise)}
-                  />
-                </div>
-              ))}
-            </div>
+            {currentExercises.length === 0 ? (
+              <div className="min-h-[260px] flex flex-col items-center justify-center rounded-[10px] border border-dashed border-[rgba(0,0,0,0.15)] bg-[rgba(119,203,242,0.06)] text-center px-[24px]">
+                <p className="font-['Inter'] font-semibold text-[16px] text-[#202224] mb-[6px]">
+                  No exercises available now
+                </p>
+                <p className="font-['Inter'] text-[13px] text-[rgba(0,0,0,0.47)]">
+                  Try changing your search or filter options.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
+                {currentExercises.map((exercise) => (
+                  <div key={exercise.id}>
+                    <ExerciseCard
+                      exercise={exercise}
+                      isBookmarked={
+                        userPracticeContentProgresses[exercise.id]
+                          ?.isBookmarked ?? false
+                      }
+                      onBookmarkChange={refreshUserPracticeContentProgresses}
+                      onSelect={() => setSelectedExercise(exercise)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-[30px]">
-              <span
-                id="browse-pagination-summary"
-                className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']"
-              >
-                Showing {sortedExercises.length === 0 ? 0 : startIndex + 1}-
-                {Math.min(endIndex, sortedExercises.length)} of{" "}
-                {sortedExercises.length}
+              <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans']">
+                Showing{" "}
+                {bookmarkFilteredExercises.length === 0 ? 0 : startIndex + 1}-
+                {Math.min(endIndex, bookmarkFilteredExercises.length)} of{" "}
+                {bookmarkFilteredExercises.length}
               </span>
 
               <div className="flex items-center gap-[10px]">
-                <span
-                  id="browse-pagination-page-indicator"
-                  className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]"
-                >
+                <span className="text-[#202224] text-[14px] opacity-60 font-['Nunito_Sans'] mr-[10px]">
                   Page {paginationPage} of {totalPages}
                 </span>
                 <div className="flex items-center gap-[10px] bg-[#FAFBFD] border border-[#D5D5D5] rounded-[8px] px-[10px] py-[5px]">
@@ -557,7 +651,7 @@ export function BrowsePage() {
 
       {/* Exercise Modal */}
       {selectedExercise && (
-        <div id="browse-exercise-modal">
+        <div>
           <ExerciseModal
             exerciseMetadata={selectedExercise}
             pageType={skill}

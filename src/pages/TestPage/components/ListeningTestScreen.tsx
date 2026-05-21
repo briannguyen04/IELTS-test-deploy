@@ -192,6 +192,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
           </div>
 
           <button
+            id={`listening-test-exit-button-${exerciseId}`}
             onClick={exitModal.openExitModal}
             className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-colors"
           >
@@ -219,6 +220,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
+                id={`listening-test-audio-play-button-${exerciseId}`}
                 onClick={audioPlayer.togglePlay}
                 className="w-[44px] h-[44px] rounded-full bg-[#1977f3] hover:bg-[#1567d3] flex items-center justify-center transition-colors flex-shrink-0"
               >
@@ -242,6 +244,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
 
           {/* Progress Bar */}
           <div
+            id={`listening-test-audio-progress-bar-${exerciseId}`}
             className="w-full bg-gray-300 rounded-full h-2 cursor-pointer"
             onClick={audioPlayer.handleSeek}
             role="progressbar"
@@ -278,6 +281,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
 
               return (
                 <button
+                  id={`listening-test-question-nav-button-${index + 1}`}
                   key={index}
                   className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
 ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
@@ -290,6 +294,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
           </div>
 
           <button
+            id={`listening-test-submit-button-${exerciseId}`}
             onClick={openSubmitModal}
             className="bg-[#fcbf65] hover:bg-[#e5ab52] text-black px-10 py-3 rounded-lg font-bold text-[18px] transition-colors"
           >
@@ -313,6 +318,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
+                  id={`listening-test-submit-modal-continue-button-${exerciseId}`}
                   onClick={() => setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 >
@@ -320,6 +326,7 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
                 </button>
               )}
               <button
+                id={`listening-test-submit-modal-confirm-button-${exerciseId}`}
                 onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
@@ -343,12 +350,14 @@ ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-
             </p>
             <div className="flex gap-4">
               <button
+                id={`listening-test-exit-modal-cancel-button-${exerciseId}`}
                 onClick={() => exitModal.setShowExitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
+                id={`listening-test-exit-modal-confirm-button-${exerciseId}`}
                 onClick={exitModal.confirmExit}
                 className="flex-1 px-6 py-3 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >

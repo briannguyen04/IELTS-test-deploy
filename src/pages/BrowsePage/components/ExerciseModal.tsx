@@ -95,6 +95,7 @@ export function ExerciseModal({
     <>
       {/* Backdrop */}
       <div
+        id={`exercise-modal-backdrop-${exerciseMetadata.id}`}
         className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
         onClick={onClose}
       >
@@ -111,6 +112,7 @@ export function ExerciseModal({
               className="w-full h-full object-cover rounded-t-[12px]"
             />
             <button
+              id={`exercise-modal-close-button-${exerciseMetadata.id}`}
               onClick={onClose}
               className="absolute top-[16px] right-[16px] bg-white rounded-full p-[8px] hover:bg-gray-100 transition-colors"
             >
@@ -236,6 +238,7 @@ export function ExerciseModal({
 
             {/* Start Button */}
             <button
+              id={`exercise-modal-start-practice-button-${exerciseMetadata.id}`}
               onClick={handleStartPractice}
               className="w-full h-[56px] bg-[#fcbf65] hover:bg-[#e5ab52] rounded-[12px] font-['Inter'] font-bold text-[18px] text-black transition-colors"
             >
